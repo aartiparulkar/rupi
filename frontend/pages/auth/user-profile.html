@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RuPi — My Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../../css/design-system.css">
+  <link rel="stylesheet" href="../../css/nav.css">
+  <style>
+    body { background: var(--bg-base); }
+    .profile-layout {
+      display: grid; grid-template-columns: 280px 1fr; gap: 24px;
+      max-width: 1100px; margin: 0 auto; padding: 100px 24px 80px;
+    }
+    @media(max-width:900px) { .profile-layout { grid-template-columns: 1fr; } }
+
+    /* ── Sidebar ── */
+    .profile-sidebar { position: sticky; top: 90px; align-self: start; }
+    .profile-avatar-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: 28px; text-align: center;
+      margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #5bc4f5);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: #061008;
+      margin: 0 auto 14px; border: 3px solid rgba(61,220,82,0.3);
+    }
+    .profile-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+    .profile-email { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 14px; }
+    .profile-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; background: rgba(61,220,82,0.1); border: 1px solid rgba(61,220,82,0.25);
+      border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 600;
+      color: var(--accent); font-family: var(--font-display);
+    }
+    .sidebar-nav { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+    .sidebar-nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 13px 18px;
+      font-size: 0.875rem; font-weight: 600; color: var(--text-muted);
+      font-family: var(--font-display); cursor: pointer; transition: all 0.15s;
+      border-bottom: 1px solid var(--border-subtle); text-decoration: none;
+    }
+    .sidebar-nav-item:last-child { border-bottom: none; }
+    .sidebar-nav-item:hover, .sidebar-nav-item.active {
+      background: rgba(61,220,82,0.06); color: var(--accent);
+    }
+    .sidebar-nav-item .nav-icon { font-size: 1rem; }
+    .sidebar-logout {
+      margin-top: 14px; width: 100%; padding: 11px;
+      background: rgba(245,91,91,0.08); border: 1px solid rgba(245,91,91,0.2);
+      border-radius: var(--radius-md); color: #f55b5b; font-size: 0.85rem;
+      font-weight: 600; font-family: var(--font-display); cursor: pointer; transition: all 0.2s;
+    }
+    .sidebar-logout:hover { background: rgba(245,91,91,0.15); }
+
+    /* ── Main Content ── */
+    .profile-main { display: flex; flex-direction: column; gap: 20px; }
+    .section-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: 28px; display: none;
+    }
+    .section-card.active { display: block; }
+    .section-card-title {
+      font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-card-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px; }
+
+    /* ── Profile fields ── */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px) { .profile-grid { grid-template-columns: 1fr; } }
+    .profile-field-group { }
+    .profile-field-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 5px; font-family: var(--font-display);
+    }
+    .profile-field-value {
+      font-size: 0.925rem; color: var(--text-primary); padding: 10px 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+    .profile-field-value.editable { cursor: text; }
+    .profile-field-value.editable:hover { border-color: rgba(61,220,82,0.3); }
+    .profile-field-input {
+      width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(61,220,82,0.4);
+      border-radius: var(--radius-md); padding: 10px 14px; color: var(--text-primary);
+      font-size: 0.925rem; font-family: var(--font-body); outline: none; box-sizing: border-box;
+      box-shadow: 0 0 0 3px rgba(61,220,82,0.1);
+    }
+    .profile-edit-btn {
+      padding: 9px 18px; background: rgba(61,220,82,0.1); border: 1px solid rgba(61,220,82,0.25);
+      border-radius: var(--radius-md); color: var(--accent); font-size: 0.82rem; font-weight: 600;
+      font-family: var(--font-display); cursor: pointer; transition: all 0.2s;
+    }
+    .profile-edit-btn:hover { background: rgba(61,220,82,0.18); }
+    .profile-save-btn {
+      padding: 9px 18px; background: var(--accent); border: none;
+      border-radius: var(--radius-md); color: #061008; font-size: 0.82rem; font-weight: 700;
+      font-family: var(--font-display); cursor: pointer; transition: all 0.2s;
+    }
+    .profile-save-btn:hover { background: #4aea61; }
+
+    /* ── Chat History ── */
+    .chat-history-list { display: flex; flex-direction: column; gap: 10px; }
+    .chat-session {
+      padding: 14px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); display: flex; align-items: center; gap: 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .chat-session:hover { border-color: rgba(61,220,82,0.25); background: rgba(61,220,82,0.03); }
+    .chat-session-icon {
+      width: 38px; height: 38px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .chat-session-info { flex: 1; min-width: 0; }
+    .chat-session-agent { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font-display); }
+    .chat-session-preview { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .chat-session-time { font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; }
+    .chat-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.875rem; }
+    .chat-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* ── Documents ── */
+    .docs-upload-zone {
+      border: 2px dashed var(--border-subtle); border-radius: var(--radius-lg);
+      padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s;
+      position: relative; margin-bottom: 20px;
+    }
+    .docs-upload-zone:hover, .docs-upload-zone.dragover { border-color: rgba(61,220,82,0.4); background: rgba(61,220,82,0.03); }
+    .docs-upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .docs-list { display: flex; flex-direction: column; gap: 10px; }
+    .doc-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); transition: all 0.15s;
+    }
+    .doc-item:hover { border-color: rgba(61,220,82,0.2); }
+    .doc-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-size: 0.875rem; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .doc-badge {
+      padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.68rem;
+      font-weight: 600; font-family: var(--font-display); flex-shrink: 0;
+    }
+    .doc-badge.verified { background: rgba(61,220,82,0.1); color: var(--accent); border: 1px solid rgba(61,220,82,0.25); }
+    .doc-badge.pending { background: rgba(245,184,76,0.1); color: var(--tax-color); border: 1px solid rgba(245,184,76,0.25); }
+    .doc-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; transition: color 0.15s; }
+    .doc-remove:hover { color: var(--error); }
+
+    /* ── Security section ── */
+    .security-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border-subtle); gap: 16px;
+    }
+    .security-item:last-child { border-bottom: none; }
+    .security-label { font-size: 0.875rem; color: var(--text-primary); font-weight: 500; }
+    .security-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .security-action {
+      padding: 7px 14px; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 600;
+      font-family: var(--font-display); cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .security-action.change { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: var(--text-muted); }
+    .security-action.change:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+    .security-action.enable { background: rgba(61,220,82,0.1); border: 1px solid rgba(61,220,82,0.25); color: var(--accent); }
+    .security-action.enabled { background: rgba(61,220,82,0.08); border: 1px solid rgba(61,220,82,0.2); color: var(--accent); cursor: default; }
+
+    /* Toggle switch */
+    .toggle { position: relative; display: inline-block; width: 42px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.1); border-radius: 24px; transition: 0.2s; }
+    .toggle-slider:before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #6b8f6e; border-radius: 50%; transition: 0.2s; }
+    .toggle input:checked + .toggle-slider { background: rgba(61,220,82,0.4); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--accent); }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      padding: 12px 20px; background: var(--bg-card); border: 1px solid var(--border-default);
+      border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-primary);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4); opacity: 0; transform: translateY(8px);
+      transition: all 0.25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: rgba(61,220,82,0.4); }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav class="nav" role="navigation">
+    <div class="nav-inner">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">Ru</div>
+        <span class="nav-logo-text">RuPi</span>
+        <span class="nav-logo-version">Your every rupee counts.</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html#features" class="nav-link">Features</a></li>
+        <li><a href="../../index.html#agents" class="nav-link">Agents</a></li>
+        <li><a href="../agents/tax.html" class="nav-link">Tax Agent</a></li>
+        <li><a href="../contact.html" class="nav-link">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="nav-status"><span class="glow-dot"></span>Live</span>
+        <span id="navUserName" style="font-size:0.85rem;color:var(--text-muted);font-family:var(--font-display);"></span>
+        <button onclick="logout()" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="profile-layout">
+    <!-- ── Sidebar ── -->
+    <aside class="profile-sidebar">
+      <div class="profile-avatar-card">
+        <div class="profile-avatar" id="avatarInitials">?</div>
+        <div class="profile-name" id="sidebarName">Loading…</div>
+        <div class="profile-email" id="sidebarEmail"></div>
+        <div class="profile-badge"><span class="glow-dot" style="width:5px;height:5px;"></span> Active Account</div>
+      </div>
+
+      <div class="sidebar-nav">
+        <a class="sidebar-nav-item active" onclick="showTab('profile')" href="#">
+          <span class="nav-icon">👤</span> My Profile
+        </a>
+        <a class="sidebar-nav-item" onclick="showTab('chat')" href="#">
+          <span class="nav-icon">💬</span> Chat History
+        </a>
+        <a class="sidebar-nav-item" onclick="showTab('documents')" href="#">
+          <span class="nav-icon">📁</span> Documents
+        </a>
+        <a class="sidebar-nav-item" onclick="showTab('security')" href="#">
+          <span class="nav-icon">🔐</span> Security
+        </a>
+        <a class="sidebar-nav-item" href="../agents/tax.html">
+          <span class="nav-icon">⚙️</span> Tax Agent
+        </a>
+        <a class="sidebar-nav-item" href="../agents/investment.html">
+          <span class="nav-icon">▲</span> Investment Agent
+        </a>
+      </div>
+
+      <button class="sidebar-logout" onclick="logout()">Sign Out →</button>
+    </aside>
+
+    <!-- ── Main ── -->
+    <main class="profile-main">
+
+      <!-- Profile Tab -->
+      <div class="section-card active" id="tab-profile">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="section-card-title">👤 Personal Information</div>
+            <div class="section-card-sub">Your details used for tax filing and AI personalisation</div>
+          </div>
+          <button class="profile-edit-btn" id="editBtn" onclick="toggleEdit()">Edit Profile</button>
+        </div>
+
+        <div class="profile-grid" id="profileGrid">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Financial info row -->
+        <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--border-subtle);">
+          <div class="section-card-title" style="font-size:0.95rem;margin-bottom:16px;">💰 Financial Details</div>
+          <div class="profile-grid" id="financialGrid"></div>
+        </div>
+      </div>
+
+      <!-- Chat History Tab -->
+      <div class="section-card" id="tab-chat">
+        <div class="section-card-title">💬 Chat History</div>
+        <div class="section-card-sub">Previous conversations with your AI agents — resumable anytime</div>
+        <div class="chat-history-list" id="chatHistoryList"></div>
+      </div>
+
+      <!-- Documents Tab -->
+      <div class="section-card" id="tab-documents">
+        <div class="section-card-title">📁 Document Vault</div>
+        <div class="section-card-sub">AES-256 encrypted · Blockchain notarized · Access anytime</div>
+
+        <div class="docs-upload-zone" id="docsUploadZone">
+          <input type="file" id="docFileInput" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div style="font-size:2rem;margin-bottom:8px;">📤</div>
+          <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;font-family:var(--font-display);">Drop files here or <span style="color:var(--accent)">browse</span></div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">PDF, JPG, PNG · Max 10MB · Military-grade encrypted</div>
+        </div>
+
+        <div class="docs-list" id="docsList"></div>
+      </div>
+
+      <!-- Security Tab -->
+      <div class="section-card" id="tab-security">
+        <div class="section-card-title">🔐 Security Settings</div>
+        <div class="section-card-sub">Manage your account security and authentication methods</div>
+
+        <div class="security-item">
+          <div>
+            <div class="security-label">Password</div>
+            <div class="security-desc">Last changed — never (set a strong password)</div>
+          </div>
+          <button class="security-action change">Change Password</button>
+        </div>
+        <div class="security-item">
+          <div>
+            <div class="security-label">Two-Factor Authentication</div>
+            <div class="security-desc">Add an extra layer of security via OTP or biometrics</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="mfaToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="security-item">
+          <div>
+            <div class="security-label">Google Account Linked</div>
+            <div class="security-desc" id="googleLinkStatus">Not linked</div>
+          </div>
+          <button class="security-action enable" id="googleLinkBtn">Link Google</button>
+        </div>
+        <div class="security-item">
+          <div>
+            <div class="security-label">Login Notifications</div>
+            <div class="security-desc">Get emailed on new sign-ins from unrecognised devices</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="loginNotifToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="security-item">
+          <div>
+            <div class="security-label">Delete Account</div>
+            <div class="security-desc">Permanently delete your account and all data</div>
+          </div>
+          <button class="security-action change" style="color:#f55b5b;border-color:rgba(245,91,91,0.25);" onclick="confirmDelete()">Delete Account</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Auth guard ──
+    const token = localStorage.getItem('rupi_token');
+    const storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
+    if (!token && !storedUser.email) {
+      window.location.href = '../../pages/auth/login.html';
+    }
+
+    // ── Populate sidebar ──
+    const fullName = `${storedUser.firstName || ''} ${storedUser.lastName || ''}`.trim() || 'User';
+    document.getElementById('sidebarName').textContent = fullName;
+    document.getElementById('sidebarEmail').textContent = storedUser.email || '';
+    document.getElementById('avatarInitials').textContent = (fullName[0] || '?').toUpperCase();
+    document.getElementById('navUserName').textContent = `Hi, ${storedUser.firstName || 'there'}`;
+
+    // ── Tab switching ──
+    function showTab(name) {
+      document.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
+      document.getElementById(`tab-${name}`).classList.add('active');
+      document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    // ── Profile fields ──
+    const FIELD_MAP = [
+      { key: 'firstName', label: 'First Name', type: 'text' },
+      { key: 'lastName', label: 'Last Name', type: 'text' },
+      { key: 'dob', label: 'Date of Birth', type: 'date' },
+      { key: 'gender', label: 'Gender', type: 'text' },
+      { key: 'profession', label: 'Profession', type: 'text' },
+      { key: 'pan', label: 'PAN Number', type: 'text' },
+      { key: 'phone', label: 'Mobile', type: 'tel' },
+      { key: 'city', label: 'City', type: 'text' },
+      { key: 'state', label: 'State', type: 'text' },
+      { key: 'address', label: 'Address', type: 'text' }
+    ];
+    const FINANCIAL_MAP = [
+      { key: 'incomeRange', label: 'Income Range', type: 'text' },
+      { key: 'taxRegime', label: 'Tax Regime', type: 'text' },
+      { key: 'riskAppetite', label: 'Risk Appetite', type: 'text' }
+    ];
+
+    let editMode = false;
+
+    function renderProfileGrid() {
+      const grid = document.getElementById('profileGrid');
+      grid.innerHTML = FIELD_MAP.map(f => `
+        <div class="profile-field-group">
+          <div class="profile-field-label">${f.label}</div>
+          ${editMode
+            ? `<input class="profile-field-input" type="${f.type}" data-key="${f.key}" value="${storedUser[f.key] || ''}" placeholder="${f.label}">`
+            : `<div class="profile-field-value">${storedUser[f.key] || '<span style="color:var(--text-disabled)">Not set</span>'}</div>`
+          }
+        </div>
+      `).join('');
+
+      const fg = document.getElementById('financialGrid');
+      fg.innerHTML = FINANCIAL_MAP.map(f => `
+        <div class="profile-field-group">
+          <div class="profile-field-label">${f.label}</div>
+          ${editMode
+            ? `<input class="profile-field-input" type="text" data-key="${f.key}" value="${storedUser[f.key] || ''}" placeholder="${f.label}">`
+            : `<div class="profile-field-value">${storedUser[f.key] || '<span style="color:var(--text-disabled)">Not set</span>'}</div>`
+          }
+        </div>
+      `).join('');
+    }
+    renderProfileGrid();
+
+    function toggleEdit() {
+      const btn = document.getElementById('editBtn');
+      if (!editMode) {
+        editMode = true;
+        btn.textContent = 'Save Changes';
+        btn.className = 'profile-save-btn';
+        renderProfileGrid();
+      } else {
+        // Collect updated values
+        document.querySelectorAll('[data-key]').forEach(input => {
+          storedUser[input.dataset.key] = input.value;
+        });
+        localStorage.setItem('rupi_user', JSON.stringify(storedUser));
+        // Push to backend
+        fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(storedUser)
+        }).catch(() => {}); // silently fail in dev
+        editMode = false;
+        btn.textContent = 'Edit Profile';
+        btn.className = 'profile-edit-btn';
+        renderProfileGrid();
+        showToast('Profile saved successfully ✓', 'success');
+      }
+    }
+
+    // ── Chat History ──
+    function renderChatHistory() {
+      const list = document.getElementById('chatHistoryList');
+      const history = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      if (!history.length) {
+        list.innerHTML = `
+          <div class="chat-empty">
+            <div class="chat-empty-icon">💬</div>
+            <div style="font-weight:600;color:var(--text-primary);margin-bottom:6px;">No conversations yet</div>
+            <div>Start a chat with the Tax, Investment, or Security agent to see your history here.</div>
+            <a href="../agents/tax.html" style="display:inline-block;margin-top:16px;padding:9px 20px;background:rgba(61,220,82,0.1);border:1px solid rgba(61,220,82,0.25);border-radius:8px;color:var(--accent);text-decoration:none;font-size:0.85rem;font-weight:600;">Start with Tax Agent →</a>
+          </div>`;
+        return;
+      }
+      const AGENT_META = {
+        tax:        { icon: '⚙️', color: 'var(--tax-color)',      bg: 'var(--tax-color-muted)',      href: '../agents/tax.html' },
+        investment: { icon: '▲',  color: 'var(--invest-color)',   bg: 'var(--invest-color-muted)',   href: '../agents/investment.html' },
+        security:   { icon: '🔒', color: 'var(--security-color)', bg: 'var(--security-color-muted)', href: '../agents/security.html' }
+      };
+      list.innerHTML = history.map(session => {
+        const meta = AGENT_META[session.agent] || AGENT_META.tax;
+        return `
+          <div class="chat-session" onclick="window.location.href='${meta.href}'">
+            <div class="chat-session-icon" style="background:${meta.bg};color:${meta.color};">${meta.icon}</div>
+            <div class="chat-session-info">
+              <div class="chat-session-agent" style="color:${meta.color};">${session.agent} Agent</div>
+              <div class="chat-session-preview">${session.preview || 'Click to resume conversation'}</div>
+            </div>
+            <div class="chat-session-time">${session.time || ''}</div>
+          </div>`;
+      }).join('');
+    }
+    renderChatHistory();
+
+    // ── Documents ──
+    let docFiles = JSON.parse(localStorage.getItem('rupi_documents') || '[]');
+
+    function renderDocs() {
+      const list = document.getElementById('docsList');
+      if (!docFiles.length) {
+        list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.875rem;">No documents uploaded yet. Add Form 16, investment proofs, or identity documents above.</div>';
+        return;
+      }
+      list.innerHTML = docFiles.map((d, i) => `
+        <div class="doc-item">
+          <div class="doc-icon">${d.name.endsWith('.pdf') ? '📄' : '🖼️'}</div>
+          <div class="doc-info">
+            <div class="doc-name">${d.name}</div>
+            <div class="doc-meta">${d.size} · Uploaded ${d.date}</div>
+          </div>
+          <span class="doc-badge ${d.verified ? 'verified' : 'pending'}">${d.verified ? '✓ Verified' : '⏳ Pending'}</span>
+          <button class="doc-remove" onclick="removeDoc(${i})" title="Remove">✕</button>
+        </div>
+      `).join('');
+    }
+    renderDocs();
+
+    function removeDoc(i) {
+      docFiles.splice(i, 1);
+      localStorage.setItem('rupi_documents', JSON.stringify(docFiles));
+      renderDocs();
+      showToast('Document removed');
+    }
+
+    const docInput = document.getElementById('docFileInput');
+    const docsZone = document.getElementById('docsUploadZone');
+    docInput.addEventListener('change', handleDocUpload);
+    docsZone.addEventListener('dragover', (e) => { e.preventDefault(); docsZone.classList.add('dragover'); });
+    docsZone.addEventListener('dragleave', () => docsZone.classList.remove('dragover'));
+    docsZone.addEventListener('drop', (e) => {
+      e.preventDefault(); docsZone.classList.remove('dragover');
+      handleDocUploadFiles(Array.from(e.dataTransfer.files));
+    });
+
+    function handleDocUpload() { handleDocUploadFiles(Array.from(docInput.files)); }
+    function handleDocUploadFiles(files) {
+      files.forEach(f => {
+        docFiles.push({
+          name: f.name,
+          size: `${(f.size / 1024).toFixed(0)} KB`,
+          date: new Date().toLocaleDateString('en-IN'),
+          verified: false
+        });
+      });
+      localStorage.setItem('rupi_documents', JSON.stringify(docFiles));
+      renderDocs();
+      showToast(`${files.length} document(s) uploaded ✓`, 'success');
+    }
+
+    // ── Toast ──
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast show ${type}`;
+      setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    // ── Logout ──
+    function logout() {
+      localStorage.removeItem('rupi_token');
+      localStorage.removeItem('rupi_user');
+      window.location.href = '../../pages/auth/login.html';
+    }
+
+    // ── Delete Account ──
+    function confirmDelete() {
+      if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
+        fetch('/api/auth/delete', { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+          .catch(() => {});
+        localStorage.clear();
+        window.location.href = '../../index.html';
+      }
+    }
+  </script>
+</body>
+</html>

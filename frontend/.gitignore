@@ -1,0 +1,26 @@
+# ── Environment ──
+.env
+.env.local
+.env.production
+
+# ── Node ──
+node_modules/
+npm-debug.log*
+
+# ── Uploads (user documents — never commit) ──
+uploads/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.vscode/
+.idea/
+
+# ── Build ──
+dist/
+build/
+
+# ── Docker ──
+# (docker-compose.yml IS committed — it's config, not secrets)

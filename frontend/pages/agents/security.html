@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Agent — RuPi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../../css/design-system.css">
+  <link rel="stylesheet" href="../../css/nav.css">
+  <link rel="stylesheet" href="../../css/agents.css">
+  <style>
+    #security-result { display: none; }
+
+    .vault-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-normal);
+    }
+    .vault-item:hover { border-color: var(--security-color); }
+    .vault-file-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--security-color-muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .vault-file-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+    .vault-file-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .vault-status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .vault-status .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .vault-status.pending .status-dot { background: var(--warning); }
+    .vault-status.verified .status-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .vault-status.pending { color: var(--warning); }
+    .vault-status.verified { color: var(--accent); }
+
+    .verify-btn {
+      padding: 6px 14px;
+      background: var(--security-color-muted);
+      border: 1px solid rgba(176,110,245,0.3);
+      color: var(--security-color);
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+      font-family: var(--font-body);
+    }
+    .verify-btn:hover { background: var(--security-color); color: white; }
+    .verify-btn.verified { background: var(--accent-muted); border-color: var(--border-accent); color: var(--accent); cursor: default; }
+    .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Threat log */
+    .threat-log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .threat-log-item:last-child { border-bottom: none; }
+    .threat-log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .threat-log-time { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+    .threat-log-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+    .threat-log-text strong { color: var(--text-primary); }
+
+    /* Scan progress bar */
+    .scan-progress-wrapper {
+      background: var(--bg-surface);
+      border-radius: var(--radius-full);
+      height: 6px;
+      overflow: hidden;
+      margin: var(--space-4) 0;
+    }
+    .scan-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--security-color), var(--accent));
+      border-radius: var(--radius-full);
+      transition: width 0.3s ease;
+    }
+
+    /* Risk meter */
+    .risk-meter {
+      position: relative;
+      width: 140px;
+      height: 70px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .risk-meter-arc {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 12px solid transparent;
+      border-top-color: var(--accent);
+      border-right-color: var(--accent);
+      transform: rotate(-135deg);
+      box-sizing: border-box;
+    }
+    .risk-meter-score {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body class="agent-page security">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">Ru</div>
+        <span class="nav-logo-text">RuPi</span>
+        <span class="nav-logo-version">Your Every Rupee Counts</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html#agents" class="nav-link">All Agents</a></li>
+        <li><a href="tax.html" class="nav-link">Tax Agent</a></li>
+        <li><a href="investment.html" class="nav-link">Investment</a></li>
+        <li><a href="security.html" class="nav-link active">Security</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="nav-status"><span class="glow-dot" style="background:var(--security-color);box-shadow:0 0 8px var(--security-color);"></span>Security Agent Active</span>
+        <a href="../../index.html" class="btn btn-secondary btn-sm">Home</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-mobile">
+    <a href="../../index.html" class="nav-link">Home</a>
+    <a href="tax.html" class="nav-link">Tax Agent</a>
+    <a href="investment.html" class="nav-link">Investment Agent</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="agent-hero security">
+    <div class="agent-hero-bg"><div class="agent-hero-glow"></div></div>
+    <div class="container agent-hero-inner">
+      <div>
+        <div class="agent-breadcrumb">
+          <a href="../../index.html">RuPi</a>
+          <span class="agent-breadcrumb-sep">/</span>
+          <a href="../../index.html#agents">Agents</a>
+          <span class="agent-breadcrumb-sep">/</span>
+          <span style="color:var(--security-color);">Security Agent</span>
+        </div>
+        <div class="agent-tag security" style="margin-bottom:var(--space-3);">Security Agent</div>
+        <h1 class="agent-hero-title" style="font-size:clamp(2rem,4vw,3rem);">Blockchain Document<br>Security & Vault</h1>
+        <p class="agent-hero-subtitle">
+          Your financial documents are encrypted, blockchain-notarized, and monitored 
+          24/7 for unauthorized access. AES-256 encryption with GDPR and RBI compliance.
+        </p>
+        <div class="agent-hero-meta">
+          <span class="agent-status-pill active" style="background:var(--security-color-muted);color:var(--security-color);border-color:rgba(176,110,245,0.3);">
+            <span class="glow-dot" style="width:6px;height:6px;background:var(--security-color);box-shadow:0 0 8px var(--security-color);"></span>
+            Agent Active
+          </span>
+          <span class="badge badge-purple">Blockchain Secured</span>
+          <span class="badge badge-green">GDPR Compliant</span>
+        </div>
+      </div>
+      <div>
+        <div class="icon-wrap icon-wrap-lg icon-wrap-purple" style="width:80px;height:80px;font-size:2.4rem;margin-left:auto;">&#128274;</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div style="background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);">
+    <div class="container">
+      <div class="agent-stats-bar" style="margin:0;padding:var(--space-4) 0;">
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num" style="color:var(--security-color);">256-bit</div>
+          <div class="agent-stat-label">AES Encryption</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num" style="color:var(--accent);">0</div>
+          <div class="agent-stat-label">Data Breaches</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num">IPFS</div>
+          <div class="agent-stat-label">Blockchain Storage</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num">MFA</div>
+          <div class="agent-stat-label">Authentication Active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div style="padding:var(--space-8) 0 var(--space-16);">
+    <div class="container">
+      <div class="agent-content-grid">
+
+        <!-- SIDEBAR -->
+        <aside class="agent-sidebar">
+          <!-- Risk score -->
+          <div class="sidebar-card" style="text-align:center;">
+            <div class="sidebar-card-title" style="text-align:left;">Security Score</div>
+            <div class="risk-meter">
+              <div class="risk-meter-arc"></div>
+              <div class="risk-meter-score" id="risk-score-num" data-score="92">0</div>
+            </div>
+            <div style="margin-top:var(--space-3);">
+              <span class="badge badge-green" style="font-size:0.8rem;">Excellent</span>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin-top:var(--space-2);">Your account security is in excellent standing.</p>
+          </div>
+
+          <!-- Active protections -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Active Protections</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.85rem;color:var(--text-secondary);">MFA</span>
+                <span class="badge badge-green" style="font-size:0.7rem;">Active</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.85rem;color:var(--text-secondary);">Encryption</span>
+                <span class="badge badge-green" style="font-size:0.7rem;">AES-256</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.85rem;color:var(--text-secondary);">Anomaly Detection</span>
+                <span class="badge badge-green" style="font-size:0.7rem;">On</span>
+              </div>
+              <!-- KYC Re-verify — COMMENTED OUT
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.85rem;color:var(--text-secondary);">KYC Status</span>
+                <span class="badge badge-green" style="font-size:0.7rem;">Verified</span>
+              </div>
+              END COMMENT -->
+              <!-- GDPR Compliance — COMMENTED OUT
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.85rem;color:var(--text-secondary);">GDPR Consent</span>
+                <span class="badge badge-green" style="font-size:0.7rem;">Given</span>
+              </div>
+              END COMMENT -->
+            </div>
+          </div>
+
+          <!-- Chat -->
+          <div class="sidebar-card" style="padding:0;overflow:hidden;">
+            <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border-subtle);">
+              <div class="sidebar-card-title" style="margin-bottom:0;">Ask Security Agent</div>
+            </div>
+            <div id="security-chat">
+              <div class="chat-container" style="max-height:200px;">
+                <div class="chat-message agent">
+                  <div class="chat-avatar" style="font-size:0.7rem;background:var(--security-color-muted);">AI</div>
+                  <div class="chat-bubble">Hello. I monitor your account security around the clock. All 3 of your uploaded documents are verified and secured on the blockchain. How can I assist?</div>
+                </div>
+              </div>
+              <div class="chat-input-row">
+                <input type="text" class="chat-input" placeholder="e.g. Is my Form 16 secure?" />
+                <button class="btn btn-sm chat-send-btn" style="background:var(--security-color);color:white;border-radius:var(--radius-full);padding:8px 14px;border:none;cursor:pointer;">&#8594;</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="agent-main">
+
+          <!-- Security Scan -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-purple" style="width:32px;height:32px;font-size:1rem;">&#128270;</span>
+                Security Scan
+              </div>
+              <span class="badge badge-purple">AI-Powered</span>
+            </div>
+            <div class="panel-body">
+              <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:var(--space-4);">
+                Run a comprehensive security scan on your documents, access patterns, and account settings. 
+                The AI agent will detect anomalies, verify blockchain hashes, and generate a full compliance report.
+              </p>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);margin-bottom:var(--space-5);">
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" checked style="accent-color:var(--security-color);"> Document Integrity
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" checked style="accent-color:var(--security-color);"> Blockchain Hashes
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" checked style="accent-color:var(--security-color);"> Anomaly Detection
+                </label>
+                <!-- Access Logs — COMMENTED OUT
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" checked style="accent-color:var(--security-color);"> Access Logs
+                </label>
+                END COMMENT -->
+                <!-- KYC Re-verify — COMMENTED OUT
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" style="accent-color:var(--security-color);"> KYC Re-verify
+                </label>
+                END COMMENT -->
+                <!-- GDPR Compliance — COMMENTED OUT
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);">
+                  <input type="checkbox" style="accent-color:var(--security-color);"> GDPR Compliance
+                </label>
+                END COMMENT -->
+              </div>
+
+              <div id="scan-progress-text" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:var(--space-2);">Ready to scan</div>
+              <div class="scan-progress-wrapper">
+                <div class="scan-progress-fill" id="scan-progress"></div>
+              </div>
+
+              <button id="run-security-scan" class="btn btn-primary" style="width:100%;justify-content:center;background:var(--security-color);color:white;font-size:1rem;padding:14px;border:none;margin-top:var(--space-2);">
+                Run Security Scan
+              </button>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div id="security-result"></div>
+
+          <!-- Document Vault -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-purple" style="width:32px;height:32px;font-size:1rem;">&#128448;</span>
+                Document Vault
+              </div>
+              <button class="btn btn-sm" style="background:var(--security-color-muted);color:var(--security-color);border:1px solid rgba(176,110,245,0.3);">
+                Upload Document
+              </button>
+            </div>
+            <div class="panel-body">
+              <div class="file-upload-wrapper" style="margin-bottom:var(--space-5);">
+                <div class="file-drop-zone" style="border-color:rgba(176,110,245,0.3);">
+                  <input type="file" accept=".pdf,.jpg,.png" multiple style="display:none;" />
+                  <span class="file-drop-icon" style="color:var(--security-color);">&#128274;</span>
+                  <div class="file-drop-title">Securely upload financial documents</div>
+                  <div class="file-drop-sub">Form 16, ITR, bank statements, investment proofs</div>
+                </div>
+                <div class="file-list"></div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+                <div class="vault-item">
+                  <div class="vault-file-icon">&#128196;</div>
+                  <div style="flex:1;">
+                    <div class="vault-file-name vault-file-name">Form 16 — FY2024-25.pdf</div>
+                    <div class="vault-file-meta">Uploaded 18 Jan 2025 &bull; 2.4 MB</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;word-break:break-all;">Hash: 0xa4f2b9c1e7d83f...</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                    <div class="vault-status verified"><div class="status-dot"></div>Blockchain Verified</div>
+                    <button class="verify-btn verified" disabled>Verified</button>
+                  </div>
+                </div>
+
+                <div class="vault-item">
+                  <div class="vault-file-icon">&#128200;</div>
+                  <div style="flex:1;">
+                    <div class="vault-file-name">ITR-1 Acknowledgement.pdf</div>
+                    <div class="vault-file-meta">Uploaded 22 Jan 2025 &bull; 1.1 MB</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;word-break:break-all;">Hash: 0x8c3d1a7e4b52f9...</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                    <div class="vault-status verified"><div class="status-dot"></div>Blockchain Verified</div>
+                    <button class="verify-btn verified" disabled>Verified</button>
+                  </div>
+                </div>
+
+                <div class="vault-item">
+                  <div class="vault-file-icon">&#127968;</div>
+                  <div style="flex:1;">
+                    <div class="vault-file-name">80C Investment Proof.pdf</div>
+                    <div class="vault-file-meta">Uploaded 5 Feb 2025 &bull; 890 KB</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;word-break:break-all;">Hash: Pending verification...</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                    <div class="vault-status pending"><div class="status-dot"></div>Pending Verification</div>
+                    <button class="verify-btn">Verify Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Threat Log -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap" style="width:32px;height:32px;font-size:1rem;background:var(--accent-muted);color:var(--accent);">&#9888;</span>
+                Activity & Threat Log
+              </div>
+              <span class="badge badge-green">No Active Threats</span>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;flex-direction:column;">
+                <div class="threat-log-item">
+                  <div class="threat-log-dot" style="background:var(--accent);"></div>
+                  <div style="flex:1;">
+                    <div class="threat-log-text"><strong>Login from Mumbai, MH</strong> — Successfully authenticated with MFA</div>
+                  </div>
+                  <div class="threat-log-time">2 hrs ago</div>
+                </div>
+                <div class="threat-log-item">
+                  <div class="threat-log-dot" style="background:var(--accent);"></div>
+                  <div style="flex:1;">
+                    <div class="threat-log-text"><strong>Document Notarized</strong> — Form 16 FY2024-25 recorded on blockchain</div>
+                  </div>
+                  <div class="threat-log-time">18 Jan</div>
+                </div>
+                <div class="threat-log-item">
+                  <div class="threat-log-dot" style="background:var(--accent);"></div>
+                  <div style="flex:1;">
+                    <div class="threat-log-text"><strong>Tax Calculation</strong> — New regime computation completed, no anomaly</div>
+                  </div>
+                  <div class="threat-log-time">18 Jan</div>
+                </div>
+                <div class="threat-log-item">
+                  <div class="threat-log-dot" style="background:var(--warning);"></div>
+                  <div style="flex:1;">
+                    <div class="threat-log-text"><strong>New Device Detected</strong> — Login from Chrome/Windows. MFA was required and passed.</div>
+                  </div>
+                  <div class="threat-log-time">12 Jan</div>
+                </div>
+                <div class="threat-log-item">
+                  <div class="threat-log-dot" style="background:var(--accent);"></div>
+                  <div style="flex:1;">
+                    <div class="threat-log-text"><strong>KYC Verified</strong> — Identity confirmed. Account upgraded to full access.</div>
+                  </div>
+                  <div class="threat-log-time">10 Jan</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security tips -->
+          <div class="panel" style="background:linear-gradient(135deg,rgba(176,110,245,0.06) 0%,var(--bg-card) 100%);border-color:rgba(176,110,245,0.2);">
+            <div class="panel-header" style="border-color:rgba(176,110,245,0.15);">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-purple" style="width:32px;height:32px;font-size:1rem;">&#128161;</span>
+                AI Security Recommendations
+              </div>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3);background:var(--security-color-muted);border-radius:var(--radius-md);">
+                  <span style="color:var(--security-color);flex-shrink:0;">01.</span>
+                  <div>
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;">Enable Biometric MFA</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">Adding fingerprint authentication reduces unauthorized access risk by 94%.</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3);background:var(--bg-surface);border-radius:var(--radius-md);">
+                  <span style="color:var(--security-color);flex-shrink:0;">02.</span>
+                  <div>
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;">Verify Pending Document</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">Your 80C Investment Proof is awaiting blockchain notarization. Click Verify Now above.</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3);background:var(--bg-surface);border-radius:var(--radius-md);">
+                  <span style="color:var(--security-color);flex-shrink:0;">03.</span>
+                  <div>
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;">Schedule Monthly Scans</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">Set up automated monthly security scans to catch anomalies before they escalate.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/agents.js"></script>
+  <script>
+    // Wire verify buttons
+    document.querySelectorAll('.verify-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.vault-item');
+        const fileName = item?.querySelector('.vault-file-name')?.textContent || 'Document';
+        btn.textContent = 'Verifying...';
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.textContent = 'Verified';
+          btn.classList.add('verified');
+          const statusEl = item?.querySelector('.vault-status');
+          if (statusEl) {
+            statusEl.className = 'vault-status verified';
+            statusEl.innerHTML = '<div class="status-dot"></div>Blockchain Verified';
+          }
+          const hashEl = item?.querySelector('[style*="word-break"]');
+          if (hashEl) {
+            hashEl.textContent = 'Hash: 0x' + Math.random().toString(16).slice(2, 14) + '...';
+          }
+          window.showToast && showToast(`${fileName} — Notarized on blockchain`, 'success');
+        }, 1800);
+      });
+    });
+  </script>
+</body>
+</html>

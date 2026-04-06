@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Agent — RuPi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../../css/design-system.css">
+  <link rel="stylesheet" href="../../css/nav.css">
+  <link rel="stylesheet" href="../../css/agents.css">
+  <style>
+    #invest-result { display: none; }
+    .risk-pill {
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all var(--transition-fast);
+      background: var(--bg-surface);
+    }
+    .risk-pill:hover { border-color: var(--invest-color); color: var(--invest-color); }
+    .risk-pill.selected { background: var(--invest-color-muted); border-color: var(--invest-color); color: var(--invest-color); }
+    .goal-card {
+      padding: var(--space-4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    .goal-card:hover, .goal-card.selected {
+      border-color: var(--invest-color);
+      background: var(--invest-color-muted);
+    }
+    .goal-card .goal-icon { font-size: 1.6rem; margin-bottom: 6px; display: block; }
+    .goal-card .goal-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+    .goal-card.selected .goal-label { color: var(--invest-color); }
+  </style>
+</head>
+<body class="agent-page invest">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">Ru</div>
+        <span class="nav-logo-text">RuPi</span>
+        <span class="nav-logo-version">Your Every Rupee Counts</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html#agents" class="nav-link">All Agents</a></li>
+        <li><a href="tax.html" class="nav-link">Tax Agent</a></li>
+        <li><a href="investment.html" class="nav-link active">Investment</a></li>
+        <li><a href="security.html" class="nav-link">Security</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="nav-status"><span class="glow-dot" style="background:var(--invest-color);box-shadow:0 0 8px var(--invest-color);"></span>Investment Agent Active</span>
+        <a href="../../index.html" class="btn btn-secondary btn-sm">Home</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-mobile">
+    <a href="../../index.html" class="nav-link">Home</a>
+    <a href="tax.html" class="nav-link">Tax Agent</a>
+    <a href="security.html" class="nav-link">Security Agent</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="agent-hero invest">
+    <div class="agent-hero-bg"><div class="agent-hero-glow"></div></div>
+    <div class="container agent-hero-inner">
+      <div>
+        <div class="agent-breadcrumb">
+          <a href="../../index.html">RuPi</a>
+          <span class="agent-breadcrumb-sep">/</span>
+          <a href="../../index.html#agents">Agents</a>
+          <span class="agent-breadcrumb-sep">/</span>
+          <span style="color:var(--invest-color);">Investment Agent</span>
+        </div>
+        <div class="agent-tag invest" style="margin-bottom:var(--space-3);">Investment Agent</div>
+        <h1 class="agent-hero-title" style="font-size:clamp(2rem,4vw,3rem);">Smart Wealth<br>Planning & Portfolio</h1>
+        <p class="agent-hero-subtitle">
+          Get personalized SIP recommendations, portfolio allocation, and goal-based 
+          investment strategies — powered by real-time market intelligence.
+        </p>
+        <div class="agent-hero-meta">
+          <span class="agent-status-pill active" style="background:var(--invest-color-muted);color:var(--invest-color);border-color:rgba(91,196,245,0.3);">
+            <span class="glow-dot" style="width:6px;height:6px;background:var(--invest-color);box-shadow:0 0 8px var(--invest-color);"></span>
+            Agent Active
+          </span>
+          <span class="badge badge-blue">Goal-Based Planning</span>
+          <span class="badge badge-green">SIP Projections</span>
+        </div>
+      </div>
+      <div>
+        <div class="icon-wrap icon-wrap-lg icon-wrap-blue" style="width:80px;height:80px;font-size:2.4rem;margin-left:auto;">&#9650;</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div style="background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);">
+    <div class="container">
+      <div class="agent-stats-bar" style="margin:0;padding:var(--space-4) 0;">
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num" style="color:var(--invest-color);">14.2%</div>
+          <div class="agent-stat-label">Avg Equity CAGR (10Y)</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num">7.1%</div>
+          <div class="agent-stat-label">Avg Debt Return (5Y)</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num" style="color:var(--accent);">&#8377;500</div>
+          <div class="agent-stat-label">Min SIP Amount</div>
+        </div>
+        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
+          <div class="agent-stat-num">12</div>
+          <div class="agent-stat-label">Asset Classes Tracked</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div style="padding:var(--space-8) 0 var(--space-16);">
+    <div class="container">
+      <div class="agent-content-grid">
+
+        <!-- SIDEBAR -->
+        <aside class="agent-sidebar">
+          <!-- Sparkline portfolio preview -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Portfolio Snapshot</div>
+            <canvas data-sparkline="42000,45000,43000,48000,52000,49000,55000,58000,61000,65000,63000,72000" data-color="#5bc4f5" width="280" height="80" style="width:100%;height:80px;margin-bottom:var(--space-3);"></canvas>
+            <div class="flex-between">
+              <div>
+                <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--text-primary);">&#8377;72,000</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);">Current Portfolio</div>
+              </div>
+              <span class="badge badge-blue">+14.2%</span>
+            </div>
+          </div>
+
+          <!-- Risk selector -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Risk Profile</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+              <label style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition-fast);">
+                <input type="radio" name="sidebar-risk" value="conservative" style="accent-color:var(--invest-color);">
+                <div>
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">Conservative</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">8-10% expected return</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--invest-color);border-radius:var(--radius-md);background:var(--invest-color-muted);cursor:pointer;">
+                <input type="radio" name="sidebar-risk" value="moderate" checked style="accent-color:var(--invest-color);">
+                <div>
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--invest-color);">Moderate</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">11-13% expected return</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition-fast);">
+                <input type="radio" name="sidebar-risk" value="aggressive" style="accent-color:var(--invest-color);">
+                <div>
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">Aggressive</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">14-16% expected return</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- AI Chat -->
+          <div class="sidebar-card" style="padding:0;overflow:hidden;">
+            <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border-subtle);">
+              <div class="sidebar-card-title" style="margin-bottom:0;">Ask Investment Agent</div>
+            </div>
+            <div id="invest-chat">
+              <div class="chat-container" style="max-height:200px;">
+                <div class="chat-message agent">
+                  <div class="chat-avatar" style="font-size:0.7rem;background:var(--invest-color-muted);">AI</div>
+                  <div class="chat-bubble">Hello! I can help you plan your investments, compare funds, and project your wealth growth. What is your financial goal?</div>
+                </div>
+              </div>
+              <div class="chat-input-row">
+                <input type="text" class="chat-input" placeholder="e.g. Best SIP for 5 years?" />
+                <button class="btn btn-sm chat-send-btn" style="background:var(--invest-color);color:#001a2a;border-radius:var(--radius-full);padding:8px 14px;border:none;cursor:pointer;">&#8594;</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="agent-main">
+          <!-- Goal selector -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-blue" style="width:32px;height:32px;font-size:1rem;">&#127919;</span>
+                What Are You Investing For?
+              </div>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3);" id="goal-grid">
+                <div class="goal-card selected" data-goal="retirement">
+                  <span class="goal-icon">&#127968;</span>
+                  <span class="goal-label">Retirement</span>
+                </div>
+                <div class="goal-card" data-goal="education">
+                  <span class="goal-icon">&#127979;</span>
+                  <span class="goal-label">Education</span>
+                </div>
+                <div class="goal-card" data-goal="home">
+                  <span class="goal-icon">&#127963;</span>
+                  <span class="goal-label">Buy Home</span>
+                </div>
+                <div class="goal-card" data-goal="vehicle">
+                  <span class="goal-icon">&#128665;</span>
+                  <span class="goal-label">Vehicle</span>
+                </div>
+                <div class="goal-card" data-goal="emergency">
+                  <span class="goal-icon">&#127931;</span>
+                  <span class="goal-label">Emergency Fund</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Investment form -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-blue" style="width:32px;height:32px;font-size:1rem;">&#8377;</span>
+                Investment Parameters
+              </div>
+              <span class="badge badge-blue">SIP Planning</span>
+            </div>
+            <div class="panel-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="invest-amount">Monthly SIP Amount (&#8377;)</label>
+                  <input type="number" id="invest-amount" class="form-input" placeholder="e.g. 10000" min="500" />
+                  <span class="form-hint">Minimum recommended: &#8377;500/month</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="invest-horizon">Investment Horizon</label>
+                  <select id="invest-horizon" class="form-select">
+                    <option value="3">3 Years</option>
+                    <option value="5" selected>5 Years</option>
+                    <option value="7">7 Years</option>
+                    <option value="10">10 Years</option>
+                    <option value="15">15 Years</option>
+                    <option value="20">20 Years</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="risk-profile">Risk Appetite</label>
+                  <select id="risk-profile" class="form-select">
+                    <option value="conservative">Conservative (Capital Protection)</option>
+                    <option value="moderate" selected>Moderate (Balanced Growth)</option>
+                    <option value="aggressive">Aggressive (High Growth)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="current-savings">Existing Savings <span class="form-label-optional">optional</span></label>
+                  <input type="number" id="current-savings" class="form-input" placeholder="e.g. 200000" />
+                  <span class="form-hint">Lump sum already invested</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="invest-goal">Goal Description <span class="form-label-optional">optional</span></label>
+                <input type="text" id="invest-goal" class="form-input" placeholder="e.g. Save ₹50 lakhs for child's education by 2035" />
+              </div>
+
+              <div style="margin-top:var(--space-4);">
+                <button id="analyze-portfolio-btn" class="btn btn-primary" style="width:100%;justify-content:center;background:var(--invest-color);color:#001a2a;font-size:1rem;padding:14px;border:none;">
+                  Generate Investment Plan
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div id="invest-result"></div>
+
+          <!-- Market overview panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon-wrap icon-wrap-blue" style="width:32px;height:32px;font-size:1rem;">&#128200;</span>
+                Market Overview
+              </div>
+              <span class="badge badge-blue">Live Indices</span>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);">
+                <div style="padding:var(--space-4);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);">
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">NIFTY 50</div>
+                  <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">24,012</div>
+                  <div style="font-size:0.78rem;color:var(--accent);">+0.84%</div>
+                  <canvas data-sparkline="23200,23400,23100,23800,24000,23700,24200,24012" data-color="#3ddc52" width="120" height="40" style="width:100%;height:40px;margin-top:8px;"></canvas>
+                </div>
+                <div style="padding:var(--space-4);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);">
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">SENSEX</div>
+                  <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">79,441</div>
+                  <div style="font-size:0.78rem;color:var(--accent);">+0.72%</div>
+                  <canvas data-sparkline="77000,77500,76800,78200,79000,78500,79600,79441" data-color="#3ddc52" width="120" height="40" style="width:100%;height:40px;margin-top:8px;"></canvas>
+                </div>
+                <div style="padding:var(--space-4);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);">
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;">Gold (per 10g)</div>
+                  <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">&#8377;79,240</div>
+                  <div style="font-size:0.78rem;color:var(--tax-color);">+0.31%</div>
+                  <canvas data-sparkline="78000,78200,78100,78800,79000,78700,79400,79240" data-color="#f5b84c" width="120" height="40" style="width:100%;height:40px;margin-top:8px;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/agents.js"></script>
+  <script>
+    // Goal card selection
+    document.querySelectorAll('.goal-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('invest-goal').value = card.dataset.goal;
+      });
+    });
+  </script>
+</body>
+</html>

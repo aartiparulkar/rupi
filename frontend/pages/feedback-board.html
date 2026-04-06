@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RuPi — Feedback Board. Community queries, feature requests, and team responses.">
+  <title>RuPi — Feedback Board</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="../css/design-system.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/landing.css">
+
+  <style>
+    .board-page { min-height: 100vh; padding-bottom: 80px; }
+
+    .board-hero { padding: 120px 0 48px; position: relative; }
+    .board-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 50% 60% at 50% 0%, rgba(176,110,245,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .board-hero-inner {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .board-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 8px 0 6px; }
+    .board-hero-sub { color: var(--text-muted); font-size: 0.95rem; }
+
+    .board-controls {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 28px; padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .board-filter-btn {
+      padding: 7px 16px; background: transparent;
+      border: 1px solid var(--border-subtle); border-radius: 20px;
+      color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: all 0.18s;
+      font-family: var(--font-display); letter-spacing: 0.03em;
+    }
+    .board-filter-btn:hover, .board-filter-btn.active {
+      background: rgba(61,220,82,0.1);
+      border-color: rgba(61,220,82,0.35);
+      color: var(--accent);
+    }
+    .board-search {
+      margin-left: auto; padding: 8px 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+      border-radius: 8px; color: var(--text-primary); font-size: 0.85rem;
+      outline: none; width: 200px; transition: border-color 0.2s;
+    }
+    .board-search:focus { border-color: rgba(61,220,82,0.3); }
+    .board-search::placeholder { color: var(--text-muted); }
+
+    .board-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .feedback-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: 14px; padding: 20px 22px; display: flex; gap: 18px;
+      transition: border-color 0.2s, transform 0.15s; position: relative; overflow: hidden;
+    }
+    .feedback-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .feedback-card.has-response { border-left: 3px solid var(--accent); }
+    .feedback-card.status-closed { opacity: 0.7; }
+
+    .vote-col {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      flex-shrink: 0; min-width: 40px;
+    }
+    .vote-btn {
+      width: 32px; height: 32px; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-subtle); border-radius: 8px;
+      color: var(--text-muted); font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .vote-btn:hover, .vote-btn.voted {
+      background: rgba(61,220,82,0.12); border-color: rgba(61,220,82,0.3); color: var(--accent);
+    }
+    .vote-count { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-display); }
+
+    .feedback-content { flex: 1; min-width: 0; }
+    .feedback-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .feedback-author { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    .feedback-time { font-size: 0.75rem; color: var(--text-muted); opacity: 0.6; }
+    .feedback-subject { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; font-family: var(--font-display); }
+    .feedback-body {
+      font-size: 0.875rem; color: var(--text-muted); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .feedback-body.expanded { -webkit-line-clamp: unset; }
+
+    .feedback-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .tag {
+      padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.04em; font-family: var(--font-display); text-transform: uppercase;
+    }
+    .tag-type-question  { background: rgba(91,196,245,0.1);  color:#5bc4f5;  border:1px solid rgba(91,196,245,0.2); }
+    .tag-type-feedback  { background: rgba(61,220,82,0.1);   color:#3ddc52;  border:1px solid rgba(61,220,82,0.2); }
+    .tag-type-feature   { background: rgba(176,110,245,0.1); color:#b06ef5;  border:1px solid rgba(176,110,245,0.2); }
+    .tag-type-bug       { background: rgba(245,100,80,0.1);  color:#f56450;  border:1px solid rgba(245,100,80,0.2); }
+    .tag-type-other     { background: rgba(245,184,76,0.1);  color:#f5b84c;  border:1px solid rgba(245,184,76,0.2); }
+    .tag-status-open        { background: rgba(61,220,82,0.08);   color:var(--accent); border:1px solid rgba(61,220,82,0.2); }
+    .tag-status-closed      { background: rgba(255,255,255,0.05); color:#6b7f6c;       border:1px solid rgba(255,255,255,0.08); }
+    .tag-status-in-progress { background: rgba(245,184,76,0.1);   color:#f5b84c;       border:1px solid rgba(245,184,76,0.2); }
+    .tag-dev { background: rgba(176,110,245,0.1); color: #b06ef5; border: 1px solid rgba(176,110,245,0.25); }
+
+    .expand-btn {
+      background: none; border: none; color: var(--accent);
+      font-size: 0.78rem; cursor: pointer; padding: 0; margin-top: 4px;
+      font-family: var(--font-display);
+    }
+
+    .dev-response {
+      margin-top: 14px; padding: 14px 16px;
+      background: rgba(61,220,82,0.04); border: 1px solid rgba(61,220,82,0.15); border-radius: 10px;
+    }
+    .dev-response-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .dev-badge {
+      padding: 2px 8px; background: rgba(61,220,82,0.15); border: 1px solid rgba(61,220,82,0.3);
+      border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-display);
+    }
+    .dev-name { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    .dev-response-body { font-size: 0.875rem; color: var(--text-primary); line-height: 1.6; }
+
+    .dev-panel {
+      margin-top: 14px; padding: 14px 16px;
+      background: rgba(176,110,245,0.04); border: 1px solid rgba(176,110,245,0.15);
+      border-radius: 10px; display: none;
+    }
+    .dev-panel.open { display: block; }
+    .dev-panel-title {
+      font-size: 0.78rem; font-weight: 700; color: #b06ef5;
+      margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+      font-family: var(--font-display);
+    }
+    .dev-panel-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .dev-tag-btn {
+      padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(176,110,245,0.25);
+      background: rgba(176,110,245,0.08); color: #b06ef5; font-size: 0.75rem;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .dev-tag-btn:hover { background: rgba(176,110,245,0.18); }
+    .dev-panel textarea {
+      width: 100%; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(176,110,245,0.2); border-radius: 8px;
+      padding: 10px 12px; color: var(--text-primary);
+      font-size: 0.85rem; resize: vertical; min-height: 80px;
+      outline: none; box-sizing: border-box; font-family: var(--font-body);
+    }
+    .dev-panel textarea:focus { border-color: rgba(176,110,245,0.4); }
+    .dev-submit-btn {
+      margin-top: 8px; padding: 8px 18px;
+      background: rgba(176,110,245,0.15); border: 1px solid rgba(176,110,245,0.35);
+      border-radius: 8px; color: #b06ef5; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; font-family: var(--font-display); transition: all 0.15s;
+    }
+    .dev-submit-btn:hover { background: rgba(176,110,245,0.25); }
+
+    .dev-mode-bar {
+      background: rgba(176,110,245,0.06); border: 1px solid rgba(176,110,245,0.2);
+      border-radius: 10px; padding: 10px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+    }
+    .dev-mode-label { font-size: 0.82rem; color: #b06ef5; font-weight: 600; font-family: var(--font-display); }
+    .dev-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .dev-toggle input { opacity: 0; width: 0; height: 0; }
+    .dev-toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: rgba(255,255,255,0.1); border-radius: 22px; transition: 0.2s;
+    }
+    .dev-toggle-slider:before {
+      content: ''; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: #6b7f6c; border-radius: 50%; transition: 0.2s;
+    }
+    .dev-toggle input:checked + .dev-toggle-slider { background: rgba(176,110,245,0.4); }
+    .dev-toggle input:checked + .dev-toggle-slider:before { transform: translateX(18px); background: #b06ef5; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-state-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+
+    .stats-bar { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+    .stat-pill { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; color: var(--text-muted); }
+    .stat-pill strong { color: var(--text-primary); font-family: var(--font-display); }
+  </style>
+</head>
+<body class="board-page">
+
+  <!-- ── NAV ── -->
+  <nav class="nav" role="navigation">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="nav-logo-icon">Ru</div>
+        <span class="nav-logo-text">RuPi</span>
+        <span class="nav-logo-version">Your every rupee counts.</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html#features" class="nav-link">Features</a></li>
+        <li><a href="../index.html#agents" class="nav-link">Agents</a></li>
+        <li><a href="../index.html#security" class="nav-link">Security</a></li>
+        <li><a href="../index.html#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="contact.html" class="nav-link" style="color:var(--accent);">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="nav-status"><span class="glow-dot"></span>Live</span>
+        <a href="agents/tax.html" class="btn btn-secondary btn-sm">Dashboard</a>
+        <a href="contact.html" class="btn btn-primary btn-sm">Submit Feedback</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-mobile">
+    <a href="../index.html#features" class="nav-link">Features</a>
+    <a href="../index.html#agents" class="nav-link">Agents</a>
+    <a href="../index.html#security" class="nav-link">Security</a>
+    <a href="../index.html#how-it-works" class="nav-link">How It Works</a>
+    <a href="contact.html" class="nav-link" style="color:var(--accent);">Contact</a>
+    <div class="nav-actions">
+      <a href="agents/tax.html" class="btn btn-secondary">Dashboard</a>
+      <a href="contact.html" class="btn btn-primary">Submit Feedback</a>
+    </div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <div class="board-hero">
+    <div class="container">
+      <div class="board-hero-inner">
+        <div>
+          <span class="pill-label">Community</span>
+          <h1>Feedback Board</h1>
+          <p class="board-hero-sub">Queries, requests, and bug reports from the RuPi community. The team tags and responds here.</p>
+        </div>
+        <a href="contact.html" class="btn btn-primary">+ Submit Feedback</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Dev Mode Bar -->
+    <div class="dev-mode-bar">
+      <div>
+        <div class="dev-mode-label">🛡️ Developer Mode</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Enable to tag submissions and post official responses</div>
+      </div>
+      <label class="dev-toggle">
+        <input type="checkbox" id="devModeToggle">
+        <span class="dev-toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-pill">📋 <strong id="totalCount">0</strong> submissions</div>
+      <div class="stat-pill">✅ <strong id="resolvedCount">0</strong> resolved</div>
+      <div class="stat-pill">💬 <strong id="respondedCount">0</strong> with responses</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="board-controls">
+      <button class="board-filter-btn active" data-filter="all">All</button>
+      <button class="board-filter-btn" data-filter="question">Questions</button>
+      <button class="board-filter-btn" data-filter="feedback">Feedback</button>
+      <button class="board-filter-btn" data-filter="feature">Feature Requests</button>
+      <button class="board-filter-btn" data-filter="bug">Bug Reports</button>
+      <input class="board-search" type="text" id="boardSearch" placeholder="🔍 Search…">
+    </div>
+
+    <!-- Board List -->
+    <div class="board-list" id="boardList"></div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer" style="margin-top:80px;">
+    <div class="container">
+      <div class="footer-bottom">
+        <div class="footer-bottom-text">
+          &copy; 2026 RuPi — All rights reserved. &nbsp;·&nbsp; Your every rupee counts.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Seed data (shown alongside user submissions)
+    const SEED = [
+      {
+        id: 1700000000001,
+        name: 'Priya Mehta', email: 'priya@example.com', type: 'feature',
+        subject: 'Export ITR as PDF directly from the dashboard',
+        message: 'It would be super helpful if we could export the filled ITR directly as a PDF without having to go through multiple steps. Saves time during filing season!',
+        timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),
+        upvotes: 24, tags: ['high-priority', 'tax-agent'],
+        devResponse: { author: 'Vibhasha (RuPi Dev)', text: 'Great suggestion! This is on our Q1 roadmap. We\'ll push an update with one-click ITR PDF export. Stay tuned!' },
+        status: 'in-progress'
+      },
+      {
+        id: 1700000000002,
+        name: 'Rahul Desai', email: 'rahul@example.com', type: 'bug',
+        subject: 'SIP calculator shows wrong maturity amount for 20-year horizon',
+        message: 'When I enter a 20-year duration for SIP with 12% expected returns, the maturity amount seems off by roughly 15-20%. Tested with a third-party calculator and results differ significantly.',
+        timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),
+        upvotes: 11, tags: ['bug', 'investment-agent', 'urgent'],
+        devResponse: { author: 'Aarti (RuPi Dev)', text: 'Thank you for reporting this! We\'ve identified the issue — it was a rounding error in the compounding formula. Fix deployed in v1.2.4. Please refresh and let us know if it\'s resolved.' },
+        status: 'closed'
+      },
+      {
+        id: 1700000000003,
+        name: 'Sneha Kulkarni', email: 'sneha@example.com', type: 'question',
+        subject: 'Does RuPi support HRA exemption for metro cities?',
+        message: 'I want to understand if the Tax Agent automatically handles HRA exemption differently for metro vs non-metro cities as per the tax rules. Couldn\'t find this in the docs.',
+        timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+        upvotes: 7, tags: ['tax-agent', 'documentation'],
+        devResponse: null, status: 'open'
+      }
+    ];
+
+    let devMode = false;
+    let activeFilter = 'all';
+    let searchQuery = '';
+    let votedIds = JSON.parse(localStorage.getItem('rupi_voted') || '[]');
+
+    function getEntries() {
+      const stored = JSON.parse(localStorage.getItem('rupi_feedback') || '[]');
+      return [...stored, ...SEED];
+    }
+
+    function timeAgo(iso) {
+      const diff = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.floor(hrs / 24)}d ago`;
+    }
+
+    const TYPE_LABELS = { question:'❓ Question', feedback:'💬 Feedback', feature:'✨ Feature Request', bug:'🐛 Bug Report', other:'📌 Other' };
+    const STATUS_LABELS = { open:'Open', 'in-progress':'In Progress', closed:'Resolved' };
+
+    function renderBoard() {
+      const entries = getEntries();
+      const filtered = entries.filter(e => {
+        const matchFilter = activeFilter === 'all' || e.type === activeFilter;
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !q || e.subject.toLowerCase().includes(q) || e.message.toLowerCase().includes(q) || e.name.toLowerCase().includes(q);
+        return matchFilter && matchSearch;
+      });
+
+      document.getElementById('totalCount').textContent = entries.length;
+      document.getElementById('resolvedCount').textContent = entries.filter(e => e.status === 'closed').length;
+      document.getElementById('respondedCount').textContent = entries.filter(e => e.devResponse).length;
+
+      const list = document.getElementById('boardList');
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No submissions found</div><p>Be the first to share a query or feedback!</p></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(e => {
+        const voted = votedIds.includes(e.id);
+        const typeClass = `tag-type-${e.type || 'other'}`;
+        const statusClass = `tag-status-${e.status || 'open'}`;
+        const devTags = (e.tags || []).map(t => `<span class="tag tag-dev">${t}</span>`).join('');
+
+        const responseHtml = e.devResponse ? `
+          <div class="dev-response">
+            <div class="dev-response-header">
+              <span class="dev-badge">Dev Response</span>
+              <span class="dev-name">${e.devResponse.author}</span>
+            </div>
+            <div class="dev-response-body">${e.devResponse.text}</div>
+          </div>` : '';
+
+        const devPanelHtml = `
+          <div class="dev-panel" id="devpanel-${e.id}">
+            <div class="dev-panel-title">🛡️ Developer Actions</div>
+            <div class="dev-panel-row">
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;width:100%;">Set Status:</div>
+              <button class="dev-tag-btn" onclick="setStatus(${e.id},'open')">Open</button>
+              <button class="dev-tag-btn" onclick="setStatus(${e.id},'in-progress')">In Progress</button>
+              <button class="dev-tag-btn" onclick="setStatus(${e.id},'closed')">Resolved</button>
+            </div>
+            <div class="dev-panel-row">
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;width:100%;">Add Tag:</div>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'high-priority')">high-priority</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'tax-agent')">tax-agent</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'investment-agent')">investment-agent</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'security-agent')">security-agent</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'bug')">bug</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'urgent')">urgent</button>
+              <button class="dev-tag-btn" onclick="addTag(${e.id},'documentation')">documentation</button>
+            </div>
+            <div style="margin-top:8px;">
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">Post Official Response:</div>
+              <textarea id="devresp-${e.id}" placeholder="Type your response as the RuPi team…"></textarea>
+              <button class="dev-submit-btn" onclick="postDevResponse(${e.id})">Post Response</button>
+            </div>
+          </div>`;
+
+        return `
+          <div class="feedback-card ${e.devResponse ? 'has-response' : ''} status-${e.status || 'open'}" id="card-${e.id}">
+            <div class="vote-col">
+              <button class="vote-btn ${voted ? 'voted' : ''}" onclick="vote(${e.id})" title="Upvote">▲</button>
+              <span class="vote-count" id="votes-${e.id}">${e.upvotes || 0}</span>
+            </div>
+            <div class="feedback-content">
+              <div class="feedback-meta">
+                <span class="feedback-author">u/${e.name}</span>
+                <span class="feedback-time">${timeAgo(e.timestamp)}</span>
+              </div>
+              <div class="feedback-subject">${e.subject}</div>
+              <div class="feedback-body" id="body-${e.id}">${e.message}</div>
+              ${e.message.length > 200 ? `<button class="expand-btn" onclick="toggleExpand(${e.id})">Show more</button>` : ''}
+              <div class="feedback-tags" style="margin-top:10px;">
+                <span class="tag ${typeClass}">${TYPE_LABELS[e.type] || 'Other'}</span>
+                <span class="tag ${statusClass}">${STATUS_LABELS[e.status] || 'Open'}</span>
+                ${devTags}
+              </div>
+              ${responseHtml}
+              ${devPanelHtml}
+              ${devMode ? `<button class="dev-tag-btn" style="margin-top:10px;" onclick="toggleDevPanel(${e.id})">⚙️ Dev Actions</button>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function vote(id) {
+      if (votedIds.includes(id)) return;
+      votedIds.push(id);
+      localStorage.setItem('rupi_voted', JSON.stringify(votedIds));
+      const seed = SEED.find(s => s.id === id);
+      if (seed) { seed.upvotes = (seed.upvotes || 0) + 1; }
+      else {
+        const stored = JSON.parse(localStorage.getItem('rupi_feedback') || '[]');
+        const entry = stored.find(e => e.id === id);
+        if (entry) { entry.upvotes = (entry.upvotes || 0) + 1; localStorage.setItem('rupi_feedback', JSON.stringify(stored)); }
+      }
+      document.getElementById(`votes-${id}`).textContent = parseInt(document.getElementById(`votes-${id}`).textContent) + 1;
+      document.querySelector(`#card-${id} .vote-btn`).classList.add('voted');
+    }
+
+    function toggleExpand(id) {
+      const body = document.getElementById(`body-${id}`);
+      const btn = body.nextElementSibling;
+      if (body.classList.contains('expanded')) { body.classList.remove('expanded'); btn.textContent = 'Show more'; }
+      else { body.classList.add('expanded'); btn.textContent = 'Show less'; }
+    }
+
+    function toggleDevPanel(id) { document.getElementById(`devpanel-${id}`).classList.toggle('open'); }
+
+    function modifyEntry(id, modifier) {
+      const seed = SEED.find(s => s.id === id);
+      if (seed) { modifier(seed); }
+      else {
+        const stored = JSON.parse(localStorage.getItem('rupi_feedback') || '[]');
+        const entry = stored.find(e => e.id === id);
+        if (entry) { modifier(entry); localStorage.setItem('rupi_feedback', JSON.stringify(stored)); }
+      }
+    }
+
+    function setStatus(id, status) {
+      modifyEntry(id, e => e.status = status);
+      renderBoard();
+      if (devMode) document.getElementById(`devpanel-${id}`).classList.add('open');
+    }
+
+    function addTag(id, tag) {
+      modifyEntry(id, e => { if (!e.tags) e.tags = []; if (!e.tags.includes(tag)) e.tags.push(tag); });
+      renderBoard();
+      if (devMode) document.getElementById(`devpanel-${id}`).classList.add('open');
+    }
+
+    function postDevResponse(id) {
+      const text = document.getElementById(`devresp-${id}`).value.trim();
+      if (!text) return;
+      modifyEntry(id, e => { e.devResponse = { author: 'RuPi Team', text }; });
+      renderBoard();
+    }
+
+    document.getElementById('devModeToggle').addEventListener('change', function() {
+      devMode = this.checked; renderBoard();
+    });
+
+    document.querySelectorAll('.board-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.board-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderBoard();
+      });
+    });
+
+    document.getElementById('boardSearch').addEventListener('input', function() {
+      searchQuery = this.value; renderBoard();
+    });
+
+    renderBoard();
+  </script>
+</body>
+</html>

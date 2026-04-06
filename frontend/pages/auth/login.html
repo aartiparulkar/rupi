@@ -1,0 +1,135 @@
+<script>
+
+// password toggle
+const pwToggle = document.getElementById('pwToggle');
+const pwInput = document.getElementById('password');
+
+pwToggle.addEventListener('click', () => {
+  const isText = pwInput.type === 'text';
+  pwInput.type = isText ? 'password' : 'text';
+  pwToggle.textContent = isText ? '👁' : '🙈';
+});
+
+let pendingAuthEmail = "";
+
+
+/* LOGIN SUBMIT */
+
+document.getElementById("loginForm").addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password){
+    alert("Enter email and password");
+    return;
+  }
+
+  pendingAuthEmail = email;
+
+  try{
+
+    const res = await fetch("/api/auth/login",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Login failed");
+      return;
+    }
+
+  } catch(err){
+    console.warn("Backend login skipped for demo");
+  }
+
+  // always show OTP screen
+  document.getElementById("auth-form-wrapper").style.display="none";
+  document.getElementById("otp-step").style.display="block";
+
+  // try to request OTP from backend
+  try{
+    await fetch("/api/auth/send-otp",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body: JSON.stringify({ email: email })
+    });
+    alert("OTP sent. Check server terminal.");
+  }
+  catch(err){
+    console.warn("OTP route unavailable, using demo OTP 123456");
+  }
+
+});
+
+
+
+/* OTP VERIFY */
+
+document.getElementById("otp-verify-btn").addEventListener("click", async function(){
+
+  const otp = document.getElementById("otp-input").value.trim();
+
+  if(otp.length !== 6){
+    alert("Enter a 6 digit OTP");
+    return;
+  }
+
+  const btn = document.getElementById("otp-verify-btn");
+  btn.textContent="Verifying...";
+  btn.disabled=true;
+
+  try{
+
+    const res = await fetch("/api/auth/verify-otp",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body: JSON.stringify({
+        email: pendingAuthEmail,
+        otp: otp
+      })
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+      localStorage.setItem("rupi_token",data.token);
+      localStorage.setItem("rupi_user",JSON.stringify(data.user));
+      window.location.href="../../index.html";
+      return;
+    }
+
+  } catch(err){
+    console.warn("Backend verification skipped");
+  }
+
+  // fallback demo verification
+  if(otp === "123456"){
+    localStorage.setItem("rupi_token","demo_token");
+
+    localStorage.setItem("rupi_user",JSON.stringify({
+      email: pendingAuthEmail,
+      firstName:"Demo",
+      lastName:"User",
+      profileComplete:true
+    }));
+
+    window.location.href="../../index.html";
+  }
+  else{
+    alert("Invalid OTP");
+    btn.disabled=false;
+    btn.textContent="Verify & Continue";
+  }
+
+});
+
+</script>

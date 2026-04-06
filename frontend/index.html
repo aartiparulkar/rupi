@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="RuPi — Agentic AI that automates taxes, investments, and financial security. Your every rupee counts.">
+  <title>RuPi — Your Every Rupee Counts</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+
+<body>
+  <!-- Cinematic Video Background -->
+  <div class="cinematic-bg" aria-hidden="true">
+    <video
+      class="cinematic-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      poster="assets/video/bg-poster.jpg"
+    >
+      <source src="assets/video/bg.mp4" type="video/mp4">
+    </video>
+    <div class="cinematic-overlay"></div>
+  </div>
+
+  <!-- Custom Fintech Canvas Background -->
+  <canvas id="fintech-bg" class="global-canvas-bg"></canvas>
+
+  <!-- ── NAV ── -->
+  <nav class="nav" role="navigation">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">Ru</div>
+        <span class="nav-logo-text">RuPi</span>
+        <span class="nav-logo-version">Your every rupee counts.</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#agents" class="nav-link">Agents</a></li>
+        <li><a href="#security" class="nav-link">Security</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="pages/contact.html" class="nav-link">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle Theme"
+          style="background:transparent;border:none;cursor:pointer;color:var(--text-primary);padding:8px;display:flex;align-items:center;transition:transform var(--transition-fast);">
+          <!-- Moon Icon (Dark Mode Active) -->
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <!-- Sun Icon (Light Mode Active) -->
+          <svg class="icon-sun" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+        <span class="nav-status"><span class="glow-dot"></span>Live</span>
+        <a href="pages/auth/login.html" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="pages/auth/signup.html" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-mobile">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#agents" class="nav-link">Agents</a>
+    <a href="#security" class="nav-link">Security</a>
+    <a href="#how-it-works" class="nav-link">How It Works</a>
+    <a href="pages/contact.html" class="nav-link">Contact</a>
+    <div class="nav-actions" style="display:flex; flex-direction:column; gap:8px;">
+      <button id="themeToggleMobileBtn" class="btn btn-secondary" aria-label="Toggle Theme"
+        style="justify-content:center;">
+        Toggle Light/Dark Theme
+      </button>
+      <a href="pages/auth/login.html" class="btn btn-secondary">Sign In</a>
+      <a href="pages/auth/signup.html" class="btn btn-primary">Get Started</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-bg-blob hero-bg-blob-1"></div>
+      <div class="hero-bg-blob hero-bg-blob-2"></div>
+      <div class="hero-bg-blob hero-bg-blob-3"></div>
+      <div class="hero-grid-overlay"></div>
+    </div>
+
+    <div class="container hero-inner">
+      <!-- Left: Content -->
+      <div class="hero-content">
+        <div class="hero-overline">
+
+          <span class="badge badge-green">
+            <span class="glow-dot" style="width:6px;height:6px;"></span>
+            Agentic AI Support
+          </span>
+        </div>
+
+        <h1 class="hero-title fade-in" data-delay="0">
+          Your Personal<br>
+          <span class="highlight"
+            data-typewriter="CA&nbsp;Agent|Tax&nbsp;Advisor|Wealth&nbsp;Planner|Security&nbsp;Guard">CA&nbsp;Agent</span><br>
+          Powered by AI
+        </h1>
+
+        <p class="hero-subtitle fade-in" data-delay="120">
+          RuPi uses a multi-agent AI system to automate taxes, track investments,
+          detect fraud, and secure your financial documents — all in one intelligent platform.
+        </p>
+
+        <div class="hero-cta fade-in" data-delay="220">
+          <a href="pages/auth/signup.html" class="btn btn-primary btn-lg">Start for Free</a>
+          <a href="#how-it-works" class="btn btn-secondary btn-lg">How It Works</a>
+        </div>
+
+        <div class="hero-trust fade-in" data-delay="300">
+          <div class="hero-trust-item">
+            <span class="hero-trust-num" data-target="4" data-suffix=" AI" data-duration="1200">4 AI</span>
+            <span class="hero-trust-label">Specialist Agents</span>
+          </div>
+          <div class="hero-trust-divider"></div>
+          <div class="hero-trust-item">
+            <span class="hero-trust-num" data-target="256" data-suffix="-bit" data-duration="1500">256-bit</span>
+            <span class="hero-trust-label">AES Encryption</span>
+          </div>
+          <div class="hero-trust-divider"></div>
+          <div class="hero-trust-item">
+            <span class="hero-trust-num" data-target="100" data-suffix="%" data-duration="1400">100%</span>
+            <span class="hero-trust-label">Blockchain Verified</span>
+          </div>
+          <div class="hero-trust-divider"></div>
+          <div class="hero-trust-item">
+            <span class="hero-trust-num" data-target="0" data-suffix=" Leaks" data-duration="1200">0 Leaks</span>
+            <span class="hero-trust-label">Data Breaches</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Visual -->
+      <div class="hero-visual fade-in" data-delay="180">
+        <div class="hero-card-stack">
+          <!-- Main card -->
+          <div class="hero-main-card noise-overlay tilt-card">
+            <div class="hcard-header">
+              <div>
+                <div class="hcard-label">Annual Overview</div>
+                <div class="hcard-amount stat-number" data-target="1245000" data-prefix="₹" data-duration="2000">
+                  &#8377;0</div>
+                <div class="hcard-sub">+18.4% from last year</div>
+              </div>
+              <span class="badge badge-green">
+                <span class="glow-dot" style="width:5px;height:5px;"></span>
+                On Track
+              </span>
+            </div>
+
+            <div class="hcard-chart">
+              <div class="hcard-bar" data-height="45" style="height:0%"></div>
+              <div class="hcard-bar" data-height="62" style="height:0%"></div>
+              <div class="hcard-bar" data-height="55" style="height:0%"></div>
+              <div class="hcard-bar" data-height="70" style="height:0%"></div>
+              <div class="hcard-bar active" data-height="85" style="height:0%"></div>
+              <div class="hcard-bar" data-height="68" style="height:0%"></div>
+              <div class="hcard-bar" data-height="78" style="height:0%"></div>
+              <div class="hcard-bar active" data-height="92" style="height:0%"></div>
+              <div class="hcard-bar" data-height="72" style="height:0%"></div>
+              <div class="hcard-bar" data-height="88" style="height:0%"></div>
+              <div class="hcard-bar active" data-height="96" style="height:0%"></div>
+              <div class="hcard-bar" data-height="80" style="height:0%"></div>
+            </div>
+            <div class="hcard-months">
+              <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span>
+              <span>Sep</span><span>Nov</span><span>Dec</span>
+            </div>
+          </div>
+
+          <!-- Floating cards -->
+          <div class="float-card float-card-1">
+            <div class="float-icon icon-wrap-yellow" style="width:36px;height:36px;font-size:0.9rem;"><svg width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg></div>
+            <div>
+              <div class="float-text-main">Tax Saved</div>
+              <div class="float-text-sub" style="color:var(--tax-color);">&#8377;38,500</div>
+            </div>
+          </div>
+
+          <div class="float-card float-card-2">
+            <div class="float-icon icon-wrap-blue" style="width:36px;height:36px;font-size:0.9rem;"><svg width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg></div>
+            <div>
+              <div class="float-text-main">Portfolio</div>
+              <div class="float-text-sub" style="color:var(--invest-color);">+14.2% CAGR</div>
+            </div>
+          </div>
+
+          <div class="float-card float-card-3">
+            <div class="float-icon icon-wrap-purple" style="width:36px;height:36px;font-size:0.9rem;"><svg width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg></div>
+            <div>
+              <div class="float-text-main">Docs Secured</div>
+              <div class="float-text-sub" style="color:var(--security-color);">Blockchain Verified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MARQUEE ── -->
+  <div class="marquee-section">
+    <div class="marquee-label">Built with enterprise-grade technologies</div>
+    <div class="marquee-track-wrapper">
+      <div class="marquee-track">
+        <span class="marquee-item">React.js</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Node.js</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Python</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Vertex AI</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Blockchain IPFS</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">OpenAI GPT</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">MongoDB</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">AES-256 Encryption</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">LangChain</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Tailwind CSS</span>
+        <span class="marquee-dot"></span>
+        <!-- Repeat for seamless loop -->
+        <span class="marquee-item">React.js</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Node.js</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Python</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Vertex AI</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Blockchain IPFS</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">OpenAI GPT</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">MongoDB</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">AES-256 Encryption</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">LangChain</span>
+        <span class="marquee-dot"></span>
+        <span class="marquee-item">Tailwind CSS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       FEATURES
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="flex-col items-center" style="text-align:center;margin-bottom:var(--space-12);">
+        <span class="pill-label fade-in">Platform Features</span>
+        <h2 class="fade-in" data-delay="80">Everything You Need in One Platform</h2>
+        <p class="fade-in" data-delay="160" style="max-width:520px;margin-top:var(--space-3);">
+          A complete financial management ecosystem built for everyday Indians who want smarter,
+          simpler control over their money.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card tilt-card slide-up stagger-1" style="--card-accent-color:var(--tax-color);">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-yellow"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg></div>
+          </div>
+          <div class="feature-title">Automated Tax Filing</div>
+          <p class="feature-desc">AI parses Form 16, identifies deductions, and pre-fills your ITR. Supports new and old
+            tax regimes with real-time computation.</p>
+        </div>
+
+        <div class="feature-card tilt-card slide-up stagger-2" style="--card-accent-color:var(--invest-color);">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-blue"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg></div>
+          </div>
+          <div class="feature-title">Smart Investments</div>
+          <p class="feature-desc">Personalized portfolio recommendations based on your risk profile, goals, and
+            investment horizon. Real-time SIP projections.</p>
+        </div>
+
+        <div class="feature-card tilt-card slide-up stagger-3" style="--card-accent-color:var(--security-color);">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-purple"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg></div>
+          </div>
+          <div class="feature-title">Document Security</div>
+          <p class="feature-desc">Blockchain-verified document vault with AES-256 encryption. Tamper-proof storage for
+            Form 16, ITRs, and investment proofs.</p>
+        </div>
+
+        <div class="feature-card tilt-card slide-up stagger-4">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-green"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg></div>
+          </div>
+          <div class="feature-title">Multilingual Chat</div>
+          <p class="feature-desc">Interact with your financial AI agent in English or Hindi. Natural language queries
+            powered by LLMs for accessibility.</p>
+        </div>
+
+        <div class="feature-card tilt-card slide-up stagger-5">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-yellow"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                </path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg></div>
+          </div>
+          <div class="feature-title">Fraud Detection</div>
+          <p class="feature-desc">Real-time anomaly detection on your transactions and login patterns. Instant MFA
+            triggers on suspicious activity.</p>
+        </div>
+
+        <div class="feature-card tilt-card slide-up stagger-6">
+          <div class="feature-icon">
+            <div class="icon-wrap icon-wrap-lg icon-wrap-green"><svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg></div>
+          </div>
+          <div class="feature-title">Goal Planning</div>
+          <p class="feature-desc">Set financial goals — home, education, retirement — and get AI-driven SIP strategies,
+            loan simulations, and milestone tracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       AGENTS
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section" id="agents" style="background:var(--bg-surface);">
+    <div class="container">
+      <div class="flex-col items-center" style="text-align:center;margin-bottom:var(--space-12);">
+        <span class="pill-label fade-in">Multi-Agent Architecture</span>
+        <h2 class="fade-in" data-delay="80">Four Specialist Agents,<br>One Unified Platform</h2>
+        <p class="fade-in" data-delay="160" style="max-width:500px;margin-top:var(--space-3);">
+          Each agent is a domain expert. The Orchestrator coordinates them to give you
+          seamless, context-aware financial assistance.
+        </p>
+      </div>
+
+      <div class="agents-grid">
+        <!-- Orchestrator -->
+        <div class="agent-showcase-card orchestrator tilt-card slide-up stagger-1">
+          <div class="agent-tag orchestrator">
+            <span class="glow-dot" style="width:5px;height:5px;"></span>
+            Orchestrator
+          </div>
+          <h3 class="agent-showcase-title">Central Brain</h3>
+          <p class="agent-showcase-desc">
+            The master coordinator that interprets user intent, plans multi-step tasks,
+            and delegates to specialist agents. Powered by an LLM with contextual memory.
+          </p>
+          <ul class="agent-capability-list">
+            <li>Intent recognition and task planning</li>
+            <li>Multi-agent workflow delegation</li>
+            <li>Context-aware response synthesis</li>
+            <li>Consent management for every action</li>
+          </ul>
+        </div>
+
+        <!-- Tax Agent -->
+        <div class="agent-showcase-card tax tilt-card slide-up stagger-2">
+          <div class="agent-tag tax">Tax Agent</div>
+          <h3 class="agent-showcase-title">Tax Automation</h3>
+          <p class="agent-showcase-desc">
+            Parses Form 16, applies deduction rules, computes ITR, and handles
+            e-verification. Supports old and new tax regimes with ML-driven deduction mining.
+          </p>
+          <ul class="agent-capability-list">
+            <li>Parse Form 16 and investment proofs</li>
+            <li>Identify all applicable deductions</li>
+            <li>Auto-populate ITR forms</li>
+            <li>Verify with latest tax laws via API</li>
+          </ul>
+          <div style="margin-top:var(--space-5);">
+            <a href="pages/agents/tax.html" class="btn btn-sm"
+              style="background:var(--tax-color-muted);color:var(--tax-color);border:1px solid rgba(245,184,76,0.3);">
+              Open Tax Agent &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- Investment Agent -->
+        <div class="agent-showcase-card invest tilt-card slide-up stagger-3">
+          <div class="agent-tag invest">Investment Agent</div>
+          <h3 class="agent-showcase-title">Wealth Management</h3>
+          <p class="agent-showcase-desc">
+            Tracks portfolio performance, ingests bank transaction data, categorizes
+            expenses and income, and generates monthly financial reports with AI insights.
+          </p>
+          <ul class="agent-capability-list">
+            <li>Portfolio performance tracking</li>
+            <li>SIP and goal planning simulations</li>
+            <li>Income and expense categorization</li>
+            <li>Cash-flow prediction models</li>
+          </ul>
+          <div style="margin-top:var(--space-5);">
+            <a href="pages/agents/investment.html" class="btn btn-sm"
+              style="background:var(--invest-color-muted);color:var(--invest-color);border:1px solid rgba(91,196,245,0.3);">
+              Open Investment Agent &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- Security Agent -->
+        <div class="agent-showcase-card security tilt-card slide-up stagger-4">
+          <div class="agent-tag security">Security Agent</div>
+          <h3 class="agent-showcase-title">Document Security</h3>
+          <p class="agent-showcase-desc">
+            Guards your financial identity. Blockchain-notarizes documents, triggers
+            MFA on risk events, monitors login anomalies, and performs KYC verification.
+          </p>
+          <ul class="agent-capability-list">
+            <li>Blockchain document notarization</li>
+            <li>Anomaly detection on login patterns</li>
+            <li>Biometric MFA integration</li>
+            <li>KYC re-verification workflows</li>
+          </ul>
+          <div style="margin-top:var(--space-5);">
+            <a href="pages/agents/security.html" class="btn btn-sm"
+              style="background:var(--security-color-muted);color:var(--security-color);border:1px solid rgba(176,110,245,0.3);">
+              Open Security Agent &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="hiw-grid">
+        <div>
+          <span class="pill-label fade-in">Workflow</span>
+          <h2 class="fade-in" data-delay="80">How RuPi Works For You</h2>
+          <p class="text-secondary fade-in" data-delay="140"
+            style="margin-top:var(--space-3);margin-bottom:var(--space-8);">
+            A seamless pipeline from your query to intelligent, secure financial action.
+          </p>
+
+          <div class="fade-in" data-delay="200">
+            <div class="hiw-step">
+              <div class="hiw-step-num">1</div>
+              <div>
+                <div class="hiw-step-title">You Talk to RuPi</div>
+                <p class="hiw-step-desc">Type or speak your query in English or Hindi. The Orchestrator Agent
+                  understands your intent and context.</p>
+              </div>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-step-num">2</div>
+              <div>
+                <div class="hiw-step-title">Agents Are Delegated</div>
+                <p class="hiw-step-desc">The Orchestrator breaks the task into steps and assigns each to the appropriate
+                  specialist agent.</p>
+              </div>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-step-num">3</div>
+              <div>
+                <div class="hiw-step-title">Consent Is Requested</div>
+                <p class="hiw-step-desc">Before any action, RuPi asks for your explicit approval. You are always in
+                  control.</p>
+              </div>
+            </div>
+            <div class="hiw-step">
+              <div class="hiw-step-num">4</div>
+              <div>
+                <div class="hiw-step-title">Results Are Secured</div>
+                <p class="hiw-step-desc">Outputs — reports, ITRs, plans — are secured with blockchain and encryption
+                  before delivery.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fade-in" data-delay="100">
+          <!-- Architecture visual card -->
+          <div class="card card-glass tilt-card" style="padding:var(--space-6);">
+            <div class="flex-between" style="margin-bottom:var(--space-5);">
+              <span
+                style="font-size:0.8rem;font-weight:600;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;font-family:var(--font-display);">Live
+                Architecture</span>
+              <span class="badge badge-green"><span class="glow-dot" style="width:5px;height:5px;"></span>Active</span>
+            </div>
+
+            <!-- Orchestrator -->
+            <div
+              style="background:var(--orchestrator-color-muted);border:1px solid rgba(61,220,82,0.2);border-radius:var(--radius-md);padding:var(--space-4);text-align:center;margin-bottom:var(--space-3);">
+              <div style="font-weight:700;font-family:var(--font-display);font-size:0.95rem;color:var(--accent);">
+                Orchestrator Agent</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Intent &rarr; Plan &rarr; Delegate
+                &rarr; Synthesize</div>
+            </div>
+
+            <!-- Arrow -->
+            <div style="text-align:center;color:var(--accent);margin:var(--space-2) 0;font-size:1.2rem;"><svg width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+              </svg></div>
+
+            <!-- Sub agents grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);">
+              <a href="pages/agents/tax.html"
+                style="background:var(--tax-color-muted);border:1px solid rgba(245,184,76,0.2);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;text-decoration:none;transition:all var(--transition-normal);display:block;">
+                <div style="font-size:1.2rem;margin-bottom:4px;"><svg width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                  </svg></div>
+                <div style="font-weight:600;font-size:0.8rem;color:var(--tax-color);">Tax Agent</div>
+              </a>
+              <a href="pages/agents/investment.html"
+                style="background:var(--invest-color-muted);border:1px solid rgba(91,196,245,0.2);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;text-decoration:none;transition:all var(--transition-normal);display:block;">
+                <div style="font-size:1.2rem;margin-bottom:4px;"><svg width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg></div>
+                <div style="font-weight:600;font-size:0.8rem;color:var(--invest-color);">Investment Agent</div>
+              </a>
+              <div
+                style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+                <div style="font-size:1.2rem;margin-bottom:4px;"><svg width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                  </svg></div>
+                <div style="font-weight:600;font-size:0.8rem;color:var(--text-muted);">Goal Planner</div>
+              </div>
+              <a href="pages/agents/security.html"
+                style="background:var(--security-color-muted);border:1px solid rgba(176,110,245,0.2);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;text-decoration:none;transition:all var(--transition-normal);display:block;">
+                <div style="font-size:1.2rem;margin-bottom:4px;"><svg width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg></div>
+                <div style="font-weight:600;font-size:0.8rem;color:var(--security-color);">Security Agent</div>
+              </a>
+            </div>
+
+            <!-- Bottom line -->
+            <div
+              style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--border-subtle);display:flex;gap:var(--space-4);flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-muted);">
+                <span style="color:var(--accent);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg></span> Blockchain Notary
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-muted);">
+                <span style="color:var(--invest-color);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg></span> Data Storage
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-muted);">
+                <span style="color:var(--tax-color);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                  </svg></span> API Services
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECURITY SECTION
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section" id="security" style="background:var(--bg-surface);">
+    <div class="container">
+      <div class="security-grid">
+        <!-- Left: visual -->
+        <div class="fade-in" data-delay="0">
+          <div class="security-visual" style="max-width:360px;">
+            <div class="security-ring">
+              <div class="security-dot" style="top:10%;left:50%;transform:translateX(-50%);"></div>
+            </div>
+            <div class="security-ring security-ring-2">
+              <div class="security-dot"
+                style="bottom:15%;right:8%;background:var(--invest-color);box-shadow:0 0 8px var(--invest-color);">
+              </div>
+            </div>
+            <div class="security-ring security-ring-3">
+              <div class="security-dot"
+                style="top:50%;left:0;transform:translateY(-50%);background:var(--security-color);box-shadow:0 0 8px var(--security-color);">
+              </div>
+            </div>
+            <div class="security-center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg></div>
+          </div>
+        </div>
+
+        <!-- Right: features -->
+        <div>
+          <span class="pill-label fade-in">Security First</span>
+          <h2 class="fade-in" data-delay="80">Your Data,<br>Immutably Protected</h2>
+          <p class="text-secondary fade-in" data-delay="140"
+            style="margin-top:var(--space-3);margin-bottom:var(--space-8);">
+            Every document you upload is encrypted, blockchain-notarized, and protected
+            by enterprise-grade security measures. Compliant with GDPR and RBI standards.
+          </p>
+
+          <div class="security-features fade-in" data-delay="200">
+            <div class="security-feature-item">
+              <div class="icon-wrap icon-wrap-purple" style="flex-shrink:0;"><svg width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path
+                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                  </path>
+                </svg></div>
+              <div>
+                <div class="hiw-step-title">AES-256 Encryption</div>
+                <p class="hiw-step-desc" style="margin-top:2px;">Military-grade encryption for all data at rest and in
+                  transit. Your financial documents are unreadable to unauthorized parties.</p>
+              </div>
+            </div>
+            <div class="security-feature-item">
+              <div class="icon-wrap icon-wrap-purple" style="flex-shrink:0;"><svg width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg></div>
+              <div>
+                <div class="hiw-step-title">Blockchain Document Vault</div>
+                <p class="hiw-step-desc" style="margin-top:2px;">Documents are hashed and recorded on an immutable
+                  blockchain ledger via IPFS, creating tamper-proof proof of authenticity.</p>
+              </div>
+            </div>
+            <div class="security-feature-item">
+              <div class="icon-wrap icon-wrap-purple" style="flex-shrink:0;"><svg width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg></div>
+              <div>
+                <div class="hiw-step-title">Multi-Factor Authentication</div>
+                <p class="hiw-step-desc" style="margin-top:2px;">Biometric and OTP-based MFA is triggered automatically
+                  on suspicious login patterns or high-risk transactions.</p>
+              </div>
+            </div>
+            <div class="security-feature-item">
+              <div class="icon-wrap icon-wrap-purple" style="flex-shrink:0;"><svg width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                  </path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg></div>
+              <div>
+                <div class="hiw-step-title">Real-Time Anomaly Detection</div>
+                <p class="hiw-step-desc" style="margin-top:2px;">The Security Agent monitors your access patterns 24/7
+                  and flags anomalies before they become breaches.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CTA
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="cta-section" id="cta">
+    <div class="container cta-inner">
+      <span class="pill-label fade-in">Get Started Today</span>
+      <h2 class="cta-title fade-in" data-delay="80">Your Every Rupee Counts.</h2>
+      <p class="cta-subtitle fade-in" data-delay="140">
+        Start managing your finances with the intelligence of a chartered accountant,
+        the security of blockchain, and the ease of a conversation.
+      </p>
+      <div class="cta-buttons fade-in" data-delay="200">
+        <a href="pages/auth/signup.html" class="btn btn-primary btn-lg">Create Free Account</a>
+        <a href="pages/auth/login.html" class="btn btn-secondary btn-lg">Sign In</a>
+      </div>
+
+      <div
+        style="margin-top:var(--space-10);display:flex;align-items:center;justify-content:center;gap:var(--space-8);flex-wrap:wrap;"
+        class="fade-in" data-delay="280">
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);">
+          <span style="color:var(--accent);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg></span> No data sold ever
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);">
+          <span style="color:var(--accent);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg></span> GDPR compliant
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);">
+          <span style="color:var(--accent);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg></span> RBI guidelines
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);">
+          <span style="color:var(--accent);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg></span> Open source architecture
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT SECTION (added back) ── -->
+  <section class="section" id="contact" style="background:var(--bg-surface);">
+    <div class="container" style="text-align:center;">
+      <span class="pill-label fade-in">Stay in Touch</span>
+      <h2 class="fade-in" data-delay="80">Have Questions?</h2>
+      <p class="fade-in" data-delay="160" style="max-width:520px;margin:var(--space-3) auto;">
+        Send us a message at <a href="mailto:support@rupi.ai" style="color:var(--accent);">support@rupi.ai</a>
+        or visit our <a href="pages/contact.html" style="color:var(--accent);">contact page</a> for more options.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="nav-logo" style="margin-bottom:var(--space-4);display:inline-flex;">
+            <div class="nav-logo-icon">Ru</div>
+            <span class="nav-logo-text">RuPi</span>
+          </a>
+          <p class="footer-brand-desc">
+            Your Chartered Accountant assistant that works on your fingertips.
+          </p>
+          <div class="footer-tech-tags" style="margin-top:var(--space-4);">
+            <a href="pages/contact.html" class="footer-contact-btn">
+              <span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg></span> Contact Us
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-heading">Agents</div>
+          <ul class="footer-links">
+            <li><a href="pages/agents/tax.html">Tax Agent</a></li>
+            <li><a href="pages/agents/investment.html">Investment Agent</a></li>
+            <li><a href="pages/agents/security.html">Security Agent</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-heading">Platform</div>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#security">Security</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-heading">Team</div>
+          <ul class="footer-links">
+            <li><a href="#">Vibhasha Nagvekar</a></li>
+            <li><a href="#">Aarti Parulkar</a></li>
+            <li><a href="#">Zaineb Patel</a></li>
+            <li><a href="#">Sakshi Patil</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-bottom-text">
+          &copy; 2026 RuPi — All rights reserved. &nbsp;·&nbsp; Your every rupee counts.
+        </div>
+        <div class="footer-tech-tags">
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+
+</html>

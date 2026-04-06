@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RuPi — Signing you in…</title>
+  <link rel="stylesheet" href="../../css/design-system.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .oauth-box { text-align:center; }
+    .spinner-lg {
+      width: 48px; height: 48px; border: 3px solid rgba(61,220,82,0.2);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .oauth-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px; }
+    .oauth-sub { font-size: 0.85rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="oauth-box">
+    <div class="spinner-lg"></div>
+    <div class="oauth-title">Signing you in with Google…</div>
+    <div class="oauth-sub">You'll be redirected in a moment</div>
+  </div>
+  <script>
+    // Parse query params from Google OAuth redirect
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const profileComplete = params.get('profileComplete') === 'true';
+    const firstName = params.get('firstName') || '';
+    const email = params.get('email') || '';
+    const id = params.get('id') || '';
+
+    if (token) {
+      localStorage.setItem('rupi_token', token);
+      localStorage.setItem('rupi_user', JSON.stringify({
+        id, firstName, email,
+        profileComplete,
+        authProvider: 'google'
+      }));
+      setTimeout(() => {
+        if (profileComplete) {
+          window.location.href = '../../pages/agents/tax.html';
+        } else {
+          window.location.href = '../../pages/auth/profile-setup.html';
+        }
+      }, 800);
+    } else {
+      window.location.href = '../../pages/auth/login.html?error=oauth_failed';
+    }
+  </script>
+</body>
+</html>
