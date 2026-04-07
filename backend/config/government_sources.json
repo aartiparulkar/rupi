@@ -1,0 +1,47 @@
+{
+  "primary_source": {
+    "name": "India Budget Official Portal",
+    "base_url": "https://www.indiabudget.gov.in",
+    "documents": {
+      "memorandum": {
+        "url_patterns": [
+          "/budget{fiscal_year}/doc/memo.pdf",
+          "/doc/memo.pdf"
+        ],
+        "example_urls": [
+          "https://www.indiabudget.gov.in/budget2024-25/doc/memo.pdf",
+          "https://www.indiabudget.gov.in/doc/memo.pdf"
+        ]
+      },
+      "finance_bill": {
+        "url_patterns": [
+          "/budget{fiscal_year}/doc/Finance_Bill.pdf",
+          "/doc/Finance_Bill.pdf"
+        ],
+        "example_urls": [
+          "https://www.indiabudget.gov.in/budget2024-25/doc/Finance_Bill.pdf",
+          "https://www.indiabudget.gov.in/doc/Finance_Bill.pdf"
+        ]
+      },
+      "budget_highlights": {
+        "url_patterns": [
+          "/doc/bh1.pdf",
+          "/budget{fiscal_year}/doc/bh1.pdf"
+        ],
+        "example_urls": [
+          "https://www.indiabudget.gov.in/doc/bh1.pdf",
+          "https://www.indiabudget.gov.in/budget2025-26/doc/bh1.pdf"
+        ]
+      }
+    }
+  },
+  "fetch_config": {
+    "schedule": "0 19 1 2 *",
+    "timezone": "Asia/Kolkata",
+    "timeout_seconds": 30,
+    "retry_attempts": 3,
+    "retry_backoff_seconds": 5,
+    "min_file_size_bytes": 1048576,
+    "validate_pdf_magic": true
+  }
+}

@@ -1,0 +1,413 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2026-04-01",
+    "description": "Tax slabs and allowable deductions for Indian income tax calculation"
+  },
+  "fiscal_years": {
+    "2024-25": {
+      "assessment_year": "2025-26",
+      "health_cess_rate": 0.04,
+      "regimes": {
+        "old_regime": {
+          "name": "Old Tax Regime",
+          "description": "Traditional regime with exemptions and deductions",
+          "standard_deduction": 50000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 250000,
+              "rate": 0,
+              "description": "Up to ₹2.5 lakhs"
+            },
+            {
+              "min": 250000,
+              "max": 500000,
+              "rate": 0.05,
+              "description": "₹2.5 lakhs to ₹5 lakhs"
+            },
+            {
+              "min": 500000,
+              "max": 1000000,
+              "rate": 0.20,
+              "description": "₹5 lakhs to ₹10 lakhs"
+            },
+            {
+              "min": 1000000,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹10 lakhs"
+            }
+          ],
+          "allowable_deductions": {
+            "section_80c": {
+              "name": "Investment in Specified Securities",
+              "max_amount": 150000,
+              "includes": ["ELSS", "PPF", "Life Insurance", "NPS", "Fixed Deposits"]
+            },
+            "section_80d": {
+              "name": "Health Insurance Premium",
+              "max_amount": 25000,
+              "description": "Self and family health insurance"
+            },
+            "section_80e": {
+              "name": "Education Loan Interest",
+              "max_amount": null,
+              "description": "No limit on education loan interest"
+            },
+            "section_80g": {
+              "name": "Charitable Donations",
+              "max_amount": null,
+              "description": "50% or 100% of donation depending on charity type"
+            },
+            "section_80gg": {
+              "name": "Rent Paid",
+              "max_amount": 60000,
+              "description": "If no HRA received"
+            },
+            "section_80tt": {
+              "name": "Senior Citizen Interest",
+              "max_amount": 50000,
+              "description": "Interest on savings account (senior citizens only)"
+            }
+          }
+        },
+        "new_regime": {
+          "name": "New Tax Regime",
+          "description": "Simplified regime with lower rates but no deductions",
+          "standard_deduction": 75000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 300000,
+              "rate": 0,
+              "description": "Up to ₹3 lakhs"
+            },
+            {
+              "min": 300000,
+              "max": 600000,
+              "rate": 0.05,
+              "description": "₹3 lakhs to ₹6 lakhs"
+            },
+            {
+              "min": 600000,
+              "max": 900000,
+              "rate": 0.10,
+              "description": "₹6 lakhs to ₹9 lakhs"
+            },
+            {
+              "min": 900000,
+              "max": 1200000,
+              "rate": 0.15,
+              "description": "₹9 lakhs to ₹12 lakhs"
+            },
+            {
+              "min": 1200000,
+              "max": 1500000,
+              "rate": 0.20,
+              "description": "₹12 lakhs to ₹15 lakhs"
+            },
+            {
+              "min": 1500000,
+              "max": 1800000,
+              "rate": 0.25,
+              "description": "₹15 lakhs to ₹18 lakhs"
+            },
+            {
+              "min": 1800000,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹18 lakhs"
+            }
+          ],
+          "rebate": {
+            "section_87a": {
+              "description": "Rebate on tax for salaried individuals",
+              "amount": null,
+              "condition": "Income up to ₹5 lakhs"
+            }
+          }
+        }
+      }
+    },
+    "2025-26": {
+      "assessment_year": "2026-27",
+      "health_cess_rate": 0.04,
+      "regimes": {
+        "old_regime": {
+          "name": "Old Tax Regime",
+          "description": "Traditional regime with exemptions and deductions",
+          "standard_deduction": 50000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 250000,
+              "rate": 0,
+              "description": "Up to ₹2.5 lakhs"
+            },
+            {
+              "min": 250000,
+              "max": 500000,
+              "rate": 0.05,
+              "description": "₹2.5 lakhs to ₹5 lakhs"
+            },
+            {
+              "min": 500000,
+              "max": 1000000,
+              "rate": 0.20,
+              "description": "₹5 lakhs to ₹10 lakhs"
+            },
+            {
+              "min": 1000000,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹10 lakhs"
+            }
+          ],
+          "allowable_deductions": {
+            "section_80c": {
+              "name": "Investment in Specified Securities",
+              "max_amount": 150000,
+              "includes": ["ELSS", "PPF", "Life Insurance", "NPS", "Fixed Deposits"]
+            },
+            "section_80d": {
+              "name": "Health Insurance Premium",
+              "max_amount": 25000,
+              "description": "Self and family health insurance"
+            },
+            "section_80e": {
+              "name": "Education Loan Interest",
+              "max_amount": null,
+              "description": "No limit on education loan interest"
+            },
+            "section_80g": {
+              "name": "Charitable Donations",
+              "max_amount": null,
+              "description": "50% or 100% of donation depending on charity type"
+            },
+            "section_80gg": {
+              "name": "Rent Paid",
+              "max_amount": 60000,
+              "description": "If no HRA received"
+            },
+            "section_80tt": {
+              "name": "Senior Citizen Interest",
+              "max_amount": 50000,
+              "description": "Interest on savings account (senior citizens only)"
+            }
+          }
+        },
+        "new_regime": {
+          "name": "New Tax Regime",
+          "description": "Simplified regime with lower rates but no deductions",
+          "standard_deduction": 75000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 300000,
+              "rate": 0,
+              "description": "Up to ₹3 lakhs"
+            },
+            {
+              "min": 300000,
+              "max": 600000,
+              "rate": 0.05,
+              "description": "₹3 lakhs to ₹6 lakhs"
+            },
+            {
+              "min": 600000,
+              "max": 900000,
+              "rate": 0.10,
+              "description": "₹6 lakhs to ₹9 lakhs"
+            },
+            {
+              "min": 900000,
+              "max": 1200000,
+              "rate": 0.15,
+              "description": "₹9 lakhs to ₹12 lakhs"
+            },
+            {
+              "min": 1200000,
+              "max": 1500000,
+              "rate": 0.20,
+              "description": "₹12 lakhs to ₹15 lakhs"
+            },
+            {
+              "min": 1500000,
+              "max": 1800000,
+              "rate": 0.25,
+              "description": "₹15 lakhs to ₹18 lakhs"
+            },
+            {
+              "min": 1800000,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹18 lakhs"
+            }
+          ],
+          "rebate": {
+            "section_87a": {
+              "description": "Rebate on tax for salaried individuals",
+              "amount": null,
+              "condition": "Income up to ₹5 lakhs"
+            }
+          }
+        }
+      }
+    },
+    "2026-27": {
+      "assessment_year": "2027-28",
+      "health_cess_rate": 0.04,
+      "regimes": {
+        "old_regime": {
+          "name": "Old Tax Regime",
+          "description": "Traditional regime with exemptions and deductions",
+          "standard_deduction": 50000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 250000,
+              "rate": 0,
+              "description": "Up to ₹2.5 lakhs"
+            },
+            {
+              "min": 250000,
+              "max": 500000,
+              "rate": 0.05,
+              "description": "₹2.5 lakhs to ₹5 lakhs"
+            },
+            {
+              "min": 500000,
+              "max": 1000000,
+              "rate": 0.20,
+              "description": "₹5 lakhs to ₹10 lakhs"
+            },
+            {
+              "min": 1000000,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹10 lakhs"
+            }
+          ],
+          "allowable_deductions": {
+            "section_80c": {
+              "name": "Investment in Specified Securities",
+              "max_amount": 150000,
+              "description": "Deductions for investments in specified financial instruments",
+              "includes": ["Equity Linked Savings (ELSS)", "Public Provident Fund (PPF)", "Employee Provident Fund (EPF) contributions", "Life insurance premium payments", "Sukanya Samriddhi Yojana (SSY)", "National Savings Certificate (NSC)", "5 year tax-saving fixed deposits", "Senior Citizen Savings Scheme (SCSS)", "Home loan principal repayment", "Stamp duty and registration charges on property purchase", "Tuition fees paid for up to two children"]
+            },
+            "section_80d": {
+              "name": "Health Insurance Premium",
+              "description": "Deductions for health insurance premiums paid for self, family, and parents",
+              "limit": {
+                "self_and_family": 25000,
+                "self_family_and_parents": 50000,
+                "senior_citizen_parents": 75000,
+                "senior_citizen_self_family_and_parents": 100000
+              },              
+              "max_amount": 100000
+            },
+            "section_80e": {
+              "name": "Education Loan Interest",
+              "max_amount": null,
+              "description": "No limit on education loan interest"
+            },
+            "section_80g": {
+              "name": "Charitable Donations",
+              "max_amount": null,
+              "description": "50% or 100% of donation depending on charity type"
+            },
+            "section_80gg": {
+              "name": "Rent Paid",
+              "rules": {
+                "fixed_annual_deduction": 60000,
+                "percentage_of_rent": 0.25,
+                "percentage_of_income": 0.10
+              },
+              "description": "If no HRA received"
+            },
+            "section_80tt": {
+              "name": "Interest on Savings/Deposits",
+              "description": "Deductions on interest from banks, co-operative societies, and post offices",
+              "sub_sections": {
+                "80tta": {
+                  "applicable_to": "Individuals < 60 years",
+                  "max_amount": 10000,
+                  "includes": ["Savings account interest only"]
+                },
+                "80ttb": {
+                  "applicable_to": "Senior Citizens >= 60 years",
+                  "max_amount": 50000,
+                  "includes": ["Savings account interest", "Fixed Deposit (FD) interest", "Recurring Deposit (RD) interest"]
+                }
+              }
+            },
+            "rebate": {
+            "section_87a": {
+              "description": "Rebate on tax for salaried individuals",
+              "amount": 12500,
+              "condition": "Income up to ₹5 lakhs"
+            }
+          }
+          }
+        },
+        "new_regime": {
+          "name": "New Tax Regime",
+          "description": "Simplified regime with lower rates but no deductions",
+          "standard_deduction": 75000,
+          "slabs": [
+            {
+              "min": 0,
+              "max": 400000,
+              "rate": 0,
+              "description": "Up to ₹4 lakhs"
+            },
+            {
+              "min": 400001,
+              "max": 800000,
+              "rate": 0.05,
+              "description": "₹4 lakhs to ₹8 lakhs"
+            },
+            {
+              "min": 800001,
+              "max": 1200000,
+              "rate": 0.10,
+              "description": "₹8 lakhs to ₹12 lakhs"
+            },
+            {
+              "min": 1200001,
+              "max": 1600000,
+              "rate": 0.15,
+              "description": "₹12 lakhs to ₹16 lakhs"
+            },
+            {
+              "min": 1600001,
+              "max": 2000000,
+              "rate": 0.20,
+              "description": "₹16 lakhs to ₹20 lakhs"
+            },
+            {
+              "min": 2000001,
+              "max": 2400000,
+              "rate": 0.25,
+              "description": "₹20 lakhs to ₹24 lakhs"
+            },
+            {
+              "min": 2400001,
+              "max": null,
+              "rate": 0.30,
+              "description": "Above ₹24 lakhs"
+            }
+          ],
+          "rebate": {
+            "section_87a": {
+              "description": "Rebate on tax for salaried individuals",
+              "amount": 60000,
+              "condition": "Income up to ₹12 lakhs"
+            }
+          }
+        }
+      }
+    }
+  }
+}
