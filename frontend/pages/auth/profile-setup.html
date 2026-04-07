@@ -417,6 +417,8 @@
 
     // Collect data from user stored at login
     const storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
+    const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
+    const apiUrl = (path) => `${API_BASE}${path}`;
 
     function goToStep(n) {
       // Hide all panels
@@ -484,13 +486,13 @@
 
       try {
         const token = localStorage.getItem('rupi_token');
-        const res = await fetch('/api/user/profile', {
+        const res = await fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ ...profileData, profileComplete: true })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Save failed');
+        if (!res.ok) throw new Error(data.detail || data.message || 'Save failed');
         localStorage.setItem('rupi_user', JSON.stringify({ ...storedUser, ...profileData, profileComplete: true }));
         window.location.href = '../../pages/auth/user-profile.html';
       } catch (err) {

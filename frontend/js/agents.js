@@ -4,9 +4,18 @@
 
 'use strict';
 
+const TAX_CHAT_SHARED_STATE = {
+  context: {
+    profile: {},
+    pending: null,
+    history: [],
+  },
+};
+
 // ── Tax Agent ─────────────────────────────────────────────────
 function initTaxAgent() {
   if (!document.querySelector('.agent-page.tax')) return;
+  const API_BASE = 'http://127.0.0.1:8000';
 
   const calculateBtn = document.getElementById('calculate-tax-btn');
   const resultSection = document.getElementById('tax-result');
@@ -50,8 +59,120 @@ function initTaxAgent() {
   // Chat interface
   initAgentChat('tax-chat', 'tax');
 
+  // Real backend-backed upload flow
+  initTaxDocumentUpload(API_BASE);
+
   // Deduction suggestions
   initDeductionSuggestions();
+}
+
+function initTaxDocumentUpload(apiBase) {
+  const zone = document.getElementById('form16-upload');
+  if (!zone) return;
+
+  const input = zone.querySelector('input[type="file"]');
+  const list = document.getElementById('form16-file-list');
+
+  const token = localStorage.getItem('rupi_token');
+
+  const renderItem = (name, status, extra = '') => {
+    if (!list) return;
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `
+      <span class="badge ${status === 'uploaded' ? 'badge-green' : status === 'failed' ? 'badge-red' : 'badge-yellow'}" style="font-size:0.7rem;padding:2px 8px;">${status.toUpperCase()}</span>
+      <span class="file-item-name">${name}</span>
+      <span class="file-item-size">${extra}</span>
+    `;
+    list.prepend(item);
+  };
+
+  const refreshDocuments = async () => {
+    if (!token || !list) return;
+    try {
+      const res = await fetch(`${apiBase}/api/user/documents`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const docs = await res.json();
+      list.innerHTML = '';
+      TAX_CHAT_SHARED_STATE.context.profile.form16_provided = false;
+      docs.forEach((doc) => {
+        renderItem(doc.filename || doc.upload_id || 'document', 'uploaded', doc.document_type || 'processed');
+        if ((doc.document_type || '').toLowerCase() === 'form_16') {
+          TAX_CHAT_SHARED_STATE.context.profile.form16_provided = true;
+        }
+      });
+    } catch (err) {
+      // no-op
+    }
+  };
+
+  const uploadFile = async (file) => {
+    if (!token) {
+      showToast('Please login first to upload documents.', 'warning');
+      return;
+    }
+
+    renderItem(file.name, 'uploading', `${(file.size / 1024).toFixed(1)} KB`);
+    const form = new FormData();
+    form.append('file', file);
+
+    try {
+      const res = await fetch(`${apiBase}/api/user/documents`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        renderItem(file.name, 'failed', data.detail || 'upload failed');
+        showToast(data.detail || `Upload failed for ${file.name}`, 'error');
+        return;
+      }
+
+      renderItem(data.filename || file.name, 'uploaded', data.document_type || 'processed');
+      if ((data.document_type || '').toLowerCase() === 'form_16') {
+        TAX_CHAT_SHARED_STATE.context.profile.form16_provided = true;
+      }
+      showToast(`${file.name} uploaded successfully`, 'success');
+    } catch (err) {
+      renderItem(file.name, 'failed', 'network error');
+      showToast(`Could not upload ${file.name}`, 'error');
+    }
+  };
+
+  const handleFiles = async (files) => {
+    const arr = Array.from(files || []);
+    for (const file of arr) {
+      await uploadFile(file);
+    }
+    await refreshDocuments();
+  };
+
+  zone.addEventListener('click', () => input && input.click());
+
+  if (input) {
+    input.addEventListener('change', (e) => handleFiles(e.target.files));
+  }
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+
+  zone.addEventListener('dragleave', () => {
+    zone.classList.remove('drag-over');
+  });
+
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  refreshDocuments();
 }
 
 function computeTax(gross, regime) {
@@ -557,14 +678,16 @@ function initAgentChat(containerId, agentType) {
   const chatMessages = container.querySelector('.chat-container');
   const chatInput    = container.querySelector('.chat-input');
   const sendBtn      = container.querySelector('.chat-send-btn');
+  const API_BASE = 'http://127.0.0.1:8000';
+  const taxState = TAX_CHAT_SHARED_STATE;
+
+  const pushHistory = (role, content) => {
+    const history = taxState.context.history || [];
+    history.push({ role, content, ts: new Date().toISOString() });
+    taxState.context.history = history.slice(-12);
+  };
 
   const agentReplies = {
-    tax: [
-      'Based on your income bracket, I recommend exploring Section 80C investments to reduce liability.',
-      'You may be eligible for HRA exemption if you are a salaried individual paying rent.',
-      'New vs Old regime comparison: with standard deduction of ₹50,000, the old regime often benefits those with higher 80C investments.',
-      'I can automatically pre-fill your ITR form once you upload Form 16. Would you like to proceed?',
-    ],
     invest: [
       'Based on your risk profile, a 60:40 equity-to-debt allocation could give you optimal risk-adjusted returns.',
       'For your 5-year horizon, ELSS funds offer both tax benefits and equity growth potential.',
@@ -586,6 +709,12 @@ function initAgentChat(containerId, agentType) {
     appendMessage(chatMessages, text, 'user');
     chatInput.value = '';
 
+    if (agentType === 'tax') {
+      pushHistory('user', text);
+      sendTaxMessage(text);
+      return;
+    }
+
     // Typing indicator
     const typingEl = document.createElement('div');
     typingEl.className = 'chat-message agent';
@@ -600,13 +729,157 @@ function initAgentChat(containerId, agentType) {
     chatMessages.appendChild(typingEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    const replies = agentReplies[agentType] || agentReplies.tax;
+    const replies = agentReplies[agentType] || [
+      'I can help with this. Please share more details so I can guide you accurately.',
+    ];
     const reply = replies[Math.floor(Math.random() * replies.length)];
 
     setTimeout(() => {
       typingEl.remove();
       appendMessage(chatMessages, reply, 'agent');
     }, 1400 + Math.random() * 800);
+  };
+
+  const sendTaxMessage = async (text) => {
+    const typingEl = document.createElement('div');
+    typingEl.className = 'chat-message agent';
+    typingEl.innerHTML = `
+      <div class="chat-avatar">AI</div>
+      <div class="loader" style="padding:10px 14px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:4px var(--radius-lg) var(--radius-lg) var(--radius-lg);">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+    `;
+    chatMessages.appendChild(typingEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      const token = localStorage.getItem('rupi_token');
+      const res = await fetch(`${API_BASE}/api/tax-agent/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          message: text,
+          context: taxState.context,
+        }),
+      });
+
+      const data = await res.json();
+      typingEl.remove();
+      if (!res.ok) {
+        appendMessage(chatMessages, data.detail || 'Unable to process your request right now.', 'agent');
+        return;
+      }
+
+      taxState.context = data.context || taxState.context;
+      appendMessage(chatMessages, data.reply || 'Please share a tax-related query.', 'agent');
+      pushHistory('assistant', data.reply || '');
+      renderTaxControls(chatMessages, data.controls || []);
+    } catch (err) {
+      typingEl.remove();
+      appendMessage(chatMessages, 'I could not reach the Tax Assistant backend. Please ensure the API is running on port 8000.', 'agent');
+    }
+  };
+
+  const renderTaxControls = (containerNode, controls) => {
+    controls.forEach((control) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'chat-message agent';
+      wrapper.innerHTML = `
+        <div class="chat-avatar">AI</div>
+        <div class="chat-bubble" style="display:flex;flex-direction:column;gap:8px;"></div>
+      `;
+      const bubble = wrapper.querySelector('.chat-bubble');
+
+      const title = document.createElement('div');
+      title.style.fontWeight = '600';
+      title.style.fontSize = '0.85rem';
+      title.textContent = control.label || 'Please choose:';
+      bubble.appendChild(title);
+
+      if (control.type === 'buttons' || control.type === 'options') {
+        const optionsRow = document.createElement('div');
+        optionsRow.style.display = 'flex';
+        optionsRow.style.flexWrap = 'wrap';
+        optionsRow.style.gap = '8px';
+
+        (control.options || []).forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-secondary btn-sm';
+          btn.textContent = opt.label;
+          btn.addEventListener('click', () => {
+            appendMessage(chatMessages, opt.label, 'user');
+            wrapper.remove();
+            sendTaxMessage(opt.value);
+          });
+          optionsRow.appendChild(btn);
+        });
+        bubble.appendChild(optionsRow);
+      }
+
+      if (control.type === 'slider') {
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = String(control.min ?? 0);
+        slider.max = String(control.max ?? 100);
+        slider.step = String(control.step ?? 1);
+        slider.value = String(control.default ?? control.min ?? 0);
+
+        const valueLabel = document.createElement('div');
+        valueLabel.style.fontSize = '0.82rem';
+        valueLabel.style.color = 'var(--text-muted)';
+        valueLabel.textContent = `₹${Number(slider.value).toLocaleString('en-IN')}`;
+
+        slider.addEventListener('input', () => {
+          valueLabel.textContent = `₹${Number(slider.value).toLocaleString('en-IN')}`;
+        });
+
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary btn-sm';
+        submitBtn.textContent = 'Use this amount';
+        submitBtn.addEventListener('click', () => {
+          const valueText = String(slider.value);
+          appendMessage(chatMessages, `₹${Number(valueText).toLocaleString('en-IN')}`, 'user');
+          wrapper.remove();
+          sendTaxMessage(valueText);
+        });
+
+        bubble.appendChild(slider);
+        bubble.appendChild(valueLabel);
+        bubble.appendChild(submitBtn);
+      }
+
+      if (control.type === 'select') {
+        const select = document.createElement('select');
+        select.className = 'chat-input';
+        (control.options || []).forEach((opt) => {
+          const option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = opt.label;
+          select.appendChild(option);
+        });
+
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary btn-sm';
+        submitBtn.textContent = 'Submit';
+        submitBtn.addEventListener('click', () => {
+          const selectedText = select.options[select.selectedIndex]?.text || select.value;
+          appendMessage(chatMessages, selectedText, 'user');
+          wrapper.remove();
+          sendTaxMessage(select.value);
+        });
+
+        bubble.appendChild(select);
+        bubble.appendChild(submitBtn);
+      }
+
+      containerNode.appendChild(wrapper);
+      containerNode.scrollTop = containerNode.scrollHeight;
+    });
   };
 
   if (sendBtn) sendBtn.addEventListener('click', send);

@@ -22,5 +22,5 @@ Thumbs.db
 dist/
 build/
 
-# ── Docker ──
-# (docker-compose.yml IS committed — it's config, not secrets)
+# ── Python virtual environment (if used) ──
+.venv/

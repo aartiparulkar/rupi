@@ -11,6 +11,8 @@ pwToggle.addEventListener('click', () => {
 });
 
 let pendingAuthEmail = "";
+const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
+const apiUrl = (path) => `${API_BASE}${path}`;
 
 
 /* LOGIN SUBMIT */
@@ -31,7 +33,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
   try{
 
-    const res = await fetch("/api/auth/login",{
+    const res = await fetch(apiUrl("/api/auth/login"),{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
       body: JSON.stringify({
@@ -43,7 +45,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const data = await res.json();
 
     if(!res.ok){
-      alert(data.message || "Login failed");
+      alert(data.detail || data.message || "Login failed");
       return;
     }
 
@@ -57,7 +59,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
   // try to request OTP from backend
   try{
-    await fetch("/api/auth/send-otp",{
+    await fetch(apiUrl("/api/auth/send-otp"),{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
       body: JSON.stringify({ email: email })
@@ -89,7 +91,7 @@ document.getElementById("otp-verify-btn").addEventListener("click", async functi
 
   try{
 
-    const res = await fetch("/api/auth/verify-otp",{
+    const res = await fetch(apiUrl("/api/auth/verify-otp"),{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
       body: JSON.stringify({

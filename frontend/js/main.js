@@ -172,6 +172,7 @@ function initChartBars() {
 // ── File Drop Zone ────────────────────────────────────────────
 function initFileDropZones() {
   $$('.file-drop-zone').forEach(zone => {
+    if (zone.dataset.apiUpload === 'true') return;
     const input = zone.querySelector('input[type="file"]');
     const fileList = zone.closest('.file-upload-wrapper')?.querySelector('.file-list');
 
