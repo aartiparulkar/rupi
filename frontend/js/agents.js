@@ -814,6 +814,19 @@ function initAgentChat(containerId, agentType) {
           btn.addEventListener('click', () => {
             appendMessage(chatMessages, opt.label, 'user');
             wrapper.remove();
+
+            if (opt.value === 'register_now') {
+              window.location.href = '/pages/auth/signup.html';
+              return;
+            }
+
+            if (opt.value === 'upload_form16_yes') {
+              const uploadZone = document.getElementById('form16-upload');
+              if (uploadZone) {
+                uploadZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+
             sendTaxMessage(opt.value);
           });
           optionsRow.appendChild(btn);

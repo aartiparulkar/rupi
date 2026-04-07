@@ -327,7 +327,7 @@
       label.style.color = levels[score].c;
     });
 
-    const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
+    const API_BASE = window.RUPI_API_BASE || 'http://127.0.0.1:8000';
     const apiUrl = (path) => `${API_BASE}${path}`;
     let pendingAuthEmail = '';
     let pendingAuthToken = '';
@@ -363,7 +363,14 @@
           body: JSON.stringify({ firstName, lastName, email, password })
         });
 
-        const data = await res.json();
+        const raw = await res.text();
+        let data = {};
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch (_) {
+          data = { detail: raw };
+        }
+
         if (!res.ok) {
           alert(data.detail || data.message || 'Registration failed');
           return;
@@ -371,7 +378,7 @@
 
         showOtpStep(email, data.token, data.user);
       } catch (err) {
-        alert('Unable to connect to backend. Please try again.');
+        alert(`Unable to reach the backend or parse its response. ${err?.message ? `Details: ${err.message}` : ''}`.trim());
       }
     });
 
@@ -392,7 +399,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: pendingAuthEmail, otp })
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = {};
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch (_) {
+          data = { detail: raw };
+        }
         if (!res.ok) {
           alert(data.detail || data.message || 'Invalid OTP');
           btn.textContent = 'Verify & Continue';

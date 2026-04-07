@@ -11,7 +11,7 @@ pwToggle.addEventListener('click', () => {
 });
 
 let pendingAuthEmail = "";
-const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
+const API_BASE = window.RUPI_API_BASE || 'http://127.0.0.1:8000';
 const apiUrl = (path) => `${API_BASE}${path}`;
 
 
@@ -32,7 +32,6 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   pendingAuthEmail = email;
 
   try{
-
     const res = await fetch(apiUrl("/api/auth/login"),{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
@@ -42,32 +41,25 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       })
     });
 
-    const data = await res.json();
+    const raw = await res.text();
+    let data = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      data = { detail: raw };
+    }
 
     if(!res.ok){
       alert(data.detail || data.message || "Login failed");
       return;
     }
 
+    document.getElementById("auth-form-wrapper").style.display="none";
+    document.getElementById("otp-step").style.display="block";
+    alert(data.message || "OTP sent to your email.");
   } catch(err){
-    console.warn("Backend login skipped for demo");
-  }
-
-  // always show OTP screen
-  document.getElementById("auth-form-wrapper").style.display="none";
-  document.getElementById("otp-step").style.display="block";
-
-  // try to request OTP from backend
-  try{
-    await fetch(apiUrl("/api/auth/send-otp"),{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body: JSON.stringify({ email: email })
-    });
-    alert("OTP sent. Check server terminal.");
-  }
-  catch(err){
-    console.warn("OTP route unavailable, using demo OTP 123456");
+    alert("Unable to reach backend for OTP login.");
+    return;
   }
 
 });
@@ -100,7 +92,13 @@ document.getElementById("otp-verify-btn").addEventListener("click", async functi
       })
     });
 
-    const data = await res.json();
+    const raw = await res.text();
+    let data = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      data = { detail: raw };
+    }
 
     if(res.ok){
       localStorage.setItem("rupi_token",data.token);
@@ -110,27 +108,15 @@ document.getElementById("otp-verify-btn").addEventListener("click", async functi
     }
 
   } catch(err){
-    console.warn("Backend verification skipped");
-  }
-
-  // fallback demo verification
-  if(otp === "123456"){
-    localStorage.setItem("rupi_token","demo_token");
-
-    localStorage.setItem("rupi_user",JSON.stringify({
-      email: pendingAuthEmail,
-      firstName:"Demo",
-      lastName:"User",
-      profileComplete:true
-    }));
-
-    window.location.href="../../index.html";
-  }
-  else{
-    alert("Invalid OTP");
+    alert("Unable to verify OTP right now. Please try again.");
     btn.disabled=false;
     btn.textContent="Verify & Continue";
+    return;
   }
+
+  alert("Invalid OTP");
+  btn.disabled=false;
+  btn.textContent="Verify & Continue";
 
 });
 

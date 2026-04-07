@@ -4,20 +4,25 @@ AI-powered personal finance platform with multi-agent architecture for tax autom
 
 ## Run Locally
 
-1. Start FastAPI backend from repository root:
+1. python -m venv venv
+
+
+2. venv\Scripts\activate
+
+3. Start FastAPI backend from repository root:
 
 ```bash
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.app.main:app --reload
 ```
 
-2. Serve this frontend folder with any static server (example with Python):
+4. Serve this frontend folder with any static server (example with Python):
 
 ```bash
 cd frontend
 python -m http.server 5500
 ```
 
-3. Open:
+5. Open:
 
 - Frontend: `http://localhost:5500`
 - FastAPI: `http://localhost:8000`
@@ -26,7 +31,5 @@ python -m http.server 5500
 
 Auth/profile pages default to `http://localhost:8000` and can be overridden by setting `window.RUPI_API_BASE`.
 
-## Notes
 
-- Legacy Node/Express backend has been removed from this folder.
-- API endpoints are now served by FastAPI.
+The `backend/services/chat_service.py` has dummy functions generate_investment_agent_response and generate_security_agent_response. Edit them according to their own logic.
