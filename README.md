@@ -30,7 +30,7 @@ Features:
 
 ```bash
 git clone <repository-url>
-cd tax-agent
+cd rupi
 ```
 
 ### Step 2: Backend Setup
@@ -96,6 +96,7 @@ LOG_LEVEL=INFO
 #### 2d. Run Backend
 
 ```bash
+cd backend
 uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
