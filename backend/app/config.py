@@ -15,7 +15,14 @@ class Settings(BaseSettings):
     
     # Supabase
     supabase_url: Optional[str] = None
-    service_role_key: Optional[str] = None  # Use the service_role key for backend operations
+    service_role_key: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
+    )  # Use the service_role key for backend operations
+    supabase_jwt_secret: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("SUPABASE_JWT_SECRET", "JWT_SECRET"),
+    )
     supabase_bucket: str = Field(
         default="rupi-documents",
         validation_alias=AliasChoices("SUPABASE_BUCKET", "SUPABASE_BUCKET_NAME"),

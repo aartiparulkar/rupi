@@ -12,6 +12,42 @@ const TAX_CHAT_SHARED_STATE = {
   },
 };
 
+function decodeJwtPayload(token) {
+  if (!token) return null;
+
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    return JSON.parse(atob(padded));
+  } catch (err) {
+    return null;
+  }
+}
+
+function getValidStoredToken() {
+  const token = localStorage.getItem('rupi_token');
+  if (!token) return null;
+
+  const payload = decodeJwtPayload(token);
+  if (payload && payload.exp && Date.now() >= payload.exp * 1000) {
+    localStorage.removeItem('rupi_token');
+    localStorage.removeItem('rupi_user');
+    return null;
+  }
+
+  return token;
+}
+
+function redirectToLogin(message) {
+  if (message) showToast(message, 'warning');
+  setTimeout(() => {
+    window.location.href = '../../pages/auth/login.html';
+  }, 700);
+}
+
 // ── Tax Agent ─────────────────────────────────────────────────
 function initTaxAgent() {
   if (!document.querySelector('.agent-page.tax')) return;
@@ -73,8 +109,6 @@ function initTaxDocumentUpload(apiBase) {
   const input = zone.querySelector('input[type="file"]');
   const list = document.getElementById('form16-file-list');
 
-  const token = localStorage.getItem('rupi_token');
-
   const renderItem = (name, status, extra = '') => {
     if (!list) return;
     const item = document.createElement('div');
@@ -88,11 +122,19 @@ function initTaxDocumentUpload(apiBase) {
   };
 
   const refreshDocuments = async () => {
-    if (!token || !list) return;
+    const token = getValidStoredToken();
+    if (!token || !list) {
+      if (!token) redirectToLogin('Your session has expired. Please sign in again.');
+      return;
+    }
     try {
       const res = await fetch(`${apiBase}/api/user/documents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
       if (!res.ok) return;
       const docs = await res.json();
       list.innerHTML = '';
@@ -109,8 +151,9 @@ function initTaxDocumentUpload(apiBase) {
   };
 
   const uploadFile = async (file) => {
+    const token = getValidStoredToken();
     if (!token) {
-      showToast('Please login first to upload documents.', 'warning');
+      redirectToLogin('Your session has expired. Please sign in again.');
       return;
     }
 
@@ -124,6 +167,11 @@ function initTaxDocumentUpload(apiBase) {
         headers: { Authorization: `Bearer ${token}` },
         body: form,
       });
+
+      if (res.status === 401) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) {
@@ -639,23 +687,156 @@ function renderSecurityResult(container) {
 }
 
 function initDocumentVault() {
-  const vaultItems = $$('.vault-item');
-  vaultItems.forEach(item => {
-    const verifyBtn = item.querySelector('.verify-btn');
-    if (verifyBtn) {
+  const vaultContainer = document.getElementById('document-vault-items');
+  if (!vaultContainer) return;
+
+  const API_BASE = window.RUPI_API_BASE || 'http://127.0.0.1:8000';
+  const token = localStorage.getItem('rupi_token');
+
+  const iconForDocument = (filename, documentType) => {
+    const lower = `${filename || ''} ${documentType || ''}`.toLowerCase();
+    if (lower.includes('itr')) return '&#128200;';
+    if (lower.includes('80c') || lower.includes('proof')) return '&#127968;';
+    if (lower.includes('bank')) return '&#128176;';
+    return '&#128196;';
+  };
+
+  const formatDate = (value) => {
+    if (!value) return 'Recently uploaded';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Recently uploaded';
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const renderVaultItems = (documents) => {
+    if (!documents.length) {
+      vaultContainer.innerHTML = `
+        <div style="padding:var(--space-4);border:1px dashed var(--border-subtle);border-radius:var(--radius-md);color:var(--text-muted);font-size:0.875rem;text-align:center;">
+          No documents are stored in your vault yet.
+        </div>
+      `;
+      return;
+    }
+
+    vaultContainer.innerHTML = documents.map((doc) => {
+      const verified = (doc.extraction_status || '').toLowerCase() === 'success';
+      const statusLabel = verified ? 'Blockchain Verified' : 'Pending Verification';
+      const statusClass = verified ? 'verified' : 'pending';
+      const buttonLabel = verified ? 'Verified' : 'Verify Now';
+      const buttonDisabled = verified ? 'disabled' : '';
+      const hashValue = `0x${String(doc.upload_id || doc.filename || 'doc').replace(/[^a-f0-9]/gi, '').slice(0, 12) || 'vault'}...`;
+
+      return `
+        <div class="vault-item" data-upload-id="${doc.upload_id || ''}">
+          <div class="vault-file-icon">${iconForDocument(doc.filename, doc.document_type)}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="vault-file-name">${doc.filename || 'Document'}</div>
+            <div class="vault-file-meta">Uploaded ${formatDate(doc.created_at)} &bull; ${doc.document_type || 'Document'}</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;word-break:break-all;">Hash: ${hashValue}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+            <div class="vault-status ${statusClass}"><div class="status-dot"></div>${statusLabel}</div>
+            <button class="verify-btn" data-action="open" ${doc.upload_id ? '' : 'disabled'}>Open</button>
+            <button class="verify-btn ${verified ? 'verified' : ''}" ${buttonDisabled}>${buttonLabel}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    vaultContainer.querySelectorAll('.vault-item').forEach((item) => {
+      const openBtn = item.querySelector('[data-action="open"]');
+      const verifyBtn = item.querySelector('.verify-btn:not([data-action="open"])');
+      if (openBtn && !openBtn.disabled) {
+        openBtn.addEventListener('click', async () => {
+          const uploadId = item.dataset.uploadId;
+          if (!uploadId || !token) return;
+
+          const previousLabel = openBtn.textContent;
+          openBtn.textContent = 'Opening...';
+          openBtn.disabled = true;
+
+          try {
+            const res = await fetch(`${API_BASE}/api/user/documents/${uploadId}/view`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (res.status === 401) {
+              showToast('Your session has expired. Please sign in again.', 'warning');
+              openBtn.textContent = previousLabel;
+              openBtn.disabled = false;
+              return;
+            }
+
+            if (!res.ok) {
+              throw new Error('Unable to open document');
+            }
+
+            const data = await res.json();
+            const signedUrl = data.signed_url || data.signedUrl;
+            if (!signedUrl) {
+              throw new Error('Signed URL unavailable');
+            }
+
+            window.open(signedUrl, '_blank', 'noopener,noreferrer');
+          } catch (err) {
+            showToast(err.message || 'Unable to open document', 'error');
+          } finally {
+            openBtn.textContent = previousLabel;
+            openBtn.disabled = false;
+          }
+        });
+      }
+
+      if (!verifyBtn || verifyBtn.disabled) return;
+
       verifyBtn.addEventListener('click', () => {
-        const fileName = item.querySelector('.vault-file-name')?.textContent;
+        const fileName = item.querySelector('.vault-file-name')?.textContent || 'Document';
         verifyBtn.textContent = 'Verifying...';
         verifyBtn.disabled = true;
         setTimeout(() => {
           verifyBtn.textContent = 'Verified';
           verifyBtn.classList.add('verified');
-          item.querySelector('.vault-status')?.classList.add('verified');
+          const statusEl = item.querySelector('.vault-status');
+          if (statusEl) {
+            statusEl.className = 'vault-status verified';
+            statusEl.innerHTML = '<div class="status-dot"></div>Blockchain Verified';
+          }
           showToast(`${fileName} verified on blockchain.`, 'success');
         }, 1800);
       });
+    });
+  };
+
+  const loadVaultDocuments = async () => {
+    if (!token) {
+      renderVaultItems([]);
+      return;
     }
-  });
+
+    try {
+      const res = await fetch(`${API_BASE}/api/user/documents`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401) {
+        renderVaultItems([]);
+        showToast('Your session has expired. Please sign in again.', 'warning');
+        return;
+      }
+
+      if (!res.ok) {
+        renderVaultItems([]);
+        return;
+      }
+
+      const docs = await res.json();
+      renderVaultItems(Array.isArray(docs) ? docs : []);
+    } catch (err) {
+      renderVaultItems([]);
+    }
+  };
+
+  loadVaultDocuments();
 }
 
 function animateRiskScore() {
@@ -809,7 +990,7 @@ function initAgentChat(containerId, agentType) {
     ];
 
     try {
-      const token = localStorage.getItem('rupi_token');
+      const token = getValidStoredToken();
       const res = await fetch(`${API_BASE}/api/tax-agent/chat`, {
         method: 'POST',
         headers: {
@@ -821,6 +1002,14 @@ function initAgentChat(containerId, agentType) {
           context: taxState.context,
         }),
       });
+
+      if (res.status === 401) {
+        phaseTimers.forEach(clearTimeout);
+        progress.fail(1);
+        progress.remove();
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
 
       const data = await res.json();
       phaseTimers.forEach(clearTimeout);

@@ -145,6 +145,7 @@ class AuthService:
             "city": profile_data.get("city", ""),
             "state": profile_data.get("state", ""),
             "address": profile_data.get("address", ""),
+            "itrProfile": profile_data.get("itr_profile", {}),
             "mfaEnabled": bool(profile_data.get("mfaEnabled", False)),
             "loginNotifications": bool(profile_data.get("loginNotifications", True)),
         }
