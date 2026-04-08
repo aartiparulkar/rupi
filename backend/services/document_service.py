@@ -109,7 +109,7 @@ class DocumentService:
             Tuple of (extracted_data dict or None, error message or None)
         """
         try:
-            extracted_tax_data, parse_error, classified_type, sanitized_preview = document_parser.extract_from_bytes(
+            extracted_tax_data, parse_error, classified_type, sanitized_preview, identity_fields = document_parser.extract_from_bytes(
                 file_content=file_content,
                 filename=document_upload.filename,
                 document_type=document_upload.document_type,
@@ -122,6 +122,7 @@ class DocumentService:
                 "classified_document_type": classified_type,
                 "tax_data": extracted_tax_data,
                 "sanitized_text_preview": sanitized_preview,
+                "itr_profile": identity_fields,
                 "extraction_method": "classified+sanitized+llm_regex",
                 "extraction_date": datetime.now().isoformat(),
             }

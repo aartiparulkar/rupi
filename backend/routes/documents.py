@@ -32,22 +32,17 @@ async def upload_document(
         if len(file_content) > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="File size exceeds 10MB limit")
 
-        extracted_tax_data, parse_error, classified_type, sanitized_text = document_parser.extract_from_bytes(
+        extracted_tax_data, parse_error, classified_type, sanitized_text, identity_fields = document_parser.extract_from_bytes(
             file_content=file_content,
             filename=file.filename,
         )
         if parse_error:
             raise HTTPException(status_code=400, detail=parse_error)
 
-        sanitized_bytes, storage_filename = document_parser.build_sanitized_storage_payload(
-            original_filename=file.filename,
-            classified_type=classified_type,
-            sanitized_text=sanitized_text,
-            tax_data=extracted_tax_data,
-        )
+        sanitized_bytes = document_parser.sanitize_for_storage(file_content, file.filename)
         cloud_path, error = await StorageService.upload_to_supabase(
             sanitized_bytes,
-            storage_filename,
+            file.filename,
             current_user.user_id,
             classified_type,
         )
@@ -69,15 +64,20 @@ async def upload_document(
             "tax_data": extracted_tax_data,
             "sanitized_text_preview": sanitized_text[:3000],
             "storage_path": cloud_path,
+            "itr_profile": identity_fields,
         }
         doc.extraction_status = "success"
 
         # Keep a compact tax profile snapshot for chat follow-ups.
         existing_profile = current_user.profile_data or {}
         tax_profile = dict(existing_profile.get("tax_profile") or {})
+        itr_profile = dict(existing_profile.get("itr_profile") or {})
         tax_profile.update(extracted_tax_data or {})
         tax_profile["form16_provided"] = classified_type == "form_16" or tax_profile.get("form16_provided", False)
         existing_profile["tax_profile"] = tax_profile
+        if identity_fields:
+            itr_profile.update({k: v for k, v in identity_fields.items() if v})
+            existing_profile["itr_profile"] = itr_profile
         current_user.profile_data = existing_profile
 
         db.commit()

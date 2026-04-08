@@ -340,13 +340,51 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    function decodeJwtPayload(token) {
+      if (!token) return null;
+
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      try {
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+        return JSON.parse(atob(padded));
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function getValidStoredToken() {
+      const currentToken = localStorage.getItem('rupi_token');
+      if (!currentToken) return null;
+
+      const payload = decodeJwtPayload(currentToken);
+      if (payload && payload.exp && Date.now() >= payload.exp * 1000) {
+        localStorage.removeItem('rupi_token');
+        localStorage.removeItem('rupi_user');
+        return null;
+      }
+
+      return currentToken;
+    }
+
+    function redirectToLogin(message) {
+      if (message) showToast(message);
+      setTimeout(() => {
+        window.location.href = '../../pages/auth/login.html';
+      }, 700);
+    }
+
     // ── Auth guard ──
-    const token = localStorage.getItem('rupi_token');
+    const token = getValidStoredToken();
     const storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
     const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
     const apiUrl = (path) => `${API_BASE}${path}`;
     if (!token && !storedUser.email) {
       window.location.href = '../../pages/auth/login.html';
+    } else if (!token) {
+      redirectToLogin('Your session has expired. Please sign in again.');
     }
 
     // ── Populate sidebar ──
@@ -423,11 +461,20 @@
           storedUser[input.dataset.key] = input.value;
         });
         localStorage.setItem('rupi_user', JSON.stringify(storedUser));
+        const currentToken = getValidStoredToken();
+        if (!currentToken) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
         // Push to backend
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
           body: JSON.stringify(storedUser)
+        }).then((res) => {
+          if (res.status === 401) {
+            redirectToLogin('Your session has expired. Please sign in again.');
+          }
         }).catch(() => {}); // silently fail in dev
         editMode = false;
         btn.textContent = 'Edit Profile';
@@ -515,15 +562,21 @@
     }
 
     async function loadDocuments() {
-      if (!token) {
+      const currentToken = getValidStoredToken();
+      if (!currentToken) {
+        redirectToLogin('Your session has expired. Please sign in again.');
         renderDocs();
         return;
       }
 
       try {
         const res = await fetch(apiUrl('/api/user/documents'), {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${currentToken}` }
         });
+        if (res.status === 401) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
         if (!res.ok) {
           throw new Error('Unable to load documents.');
         }
@@ -560,12 +613,22 @@
       const doc = docFiles[i];
       if (!doc) return;
 
-      if (doc.upload_id && token) {
+      const currentToken = getValidStoredToken();
+      if (!currentToken) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
+
+      if (doc.upload_id) {
         try {
           const res = await fetch(apiUrl(`/api/user/documents/${doc.upload_id}`), {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${currentToken}` }
           });
+          if (res.status === 401) {
+            redirectToLogin('Your session has expired. Please sign in again.');
+            return;
+          }
           if (!res.ok) {
             const errorText = await res.text();
             throw new Error(errorText || 'Failed to remove document');
@@ -595,8 +658,9 @@
 
     async function handleDocUploadFiles(files) {
       if (!files.length) return;
-      if (!token) {
-        showToast('Please sign in again to upload documents');
+      const currentToken = getValidStoredToken();
+      if (!currentToken) {
+        redirectToLogin('Your session has expired. Please sign in again.');
         return;
       }
 
@@ -656,9 +720,15 @@
         try {
           const res = await fetch(apiUrl('/api/user/documents'), {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${currentToken}` },
             body: formData
           });
+
+          if (res.status === 401) {
+            stageTimers.forEach(clearTimeout);
+            redirectToLogin('Your session has expired. Please sign in again.');
+            return;
+          }
 
           const raw = await res.text();
           let payload = {};
@@ -712,7 +782,17 @@
     // ── Delete Account ──
     function confirmDelete() {
       if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
-        fetch(apiUrl('/api/auth/delete'), { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+        const currentToken = getValidStoredToken();
+        if (!currentToken) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
+        fetch(apiUrl('/api/auth/delete'), { method: 'DELETE', headers: { 'Authorization': `Bearer ${currentToken}` } })
+          .then((res) => {
+            if (res.status === 401) {
+              redirectToLogin('Your session has expired. Please sign in again.');
+            }
+          })
           .catch(() => {});
         localStorage.clear();
         window.location.href = '../../index.html';
