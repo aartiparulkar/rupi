@@ -377,7 +377,7 @@
     }
 
     // ── Auth guard ──
-    const token = localStorage.getItem('rupi_token');
+    const token = getValidStoredToken();
     const storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
     const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
     const apiUrl = (path) => `${API_BASE}${path}`;
@@ -488,18 +488,45 @@
         document.querySelectorAll('[data-key]').forEach(input => {
           updates[input.dataset.key] = input.value;
         });
-        localStorage.setItem('rupi_user', JSON.stringify(storedUser));
+        const currentToken = getValidStoredToken();
+        if (!currentToken) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
         // Push to backend
+
+        const payload = {
+          ...updates,
+          firstName: updates.firstName || storedUser.firstName,
+          lastName: updates.lastName || storedUser.lastName,
+          profileComplete: true,
+        };
+
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(storedUser)
-        }).catch(() => {}); // silently fail in dev
-        editMode = false;
-        btn.textContent = 'Edit Profile';
-        btn.className = 'profile-edit-btn';
-        renderProfileGrid();
-        showToast('Profile saved successfully ✓', 'success');
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+          body: JSON.stringify(payload)
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || 'Unable to save profile');
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (data?.user) {
+              saveStoredUser(data.user);
+            }
+            editMode = false;
+            btn.textContent = 'Edit Profile';
+            btn.className = 'profile-edit-btn';
+            showToast('Profile saved successfully ✓', 'success');
+          })
+          .catch((err) => {
+            console.error('Profile save failed:', err);
+            showToast('Could not save profile. Try again.', 'error');
+          });
       }
     }
 
