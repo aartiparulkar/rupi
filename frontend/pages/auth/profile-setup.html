@@ -420,6 +420,40 @@
     const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
     const apiUrl = (path) => `${API_BASE}${path}`;
 
+    function decodeJwtPayload(token) {
+      if (!token) return null;
+
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      try {
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+        return JSON.parse(atob(padded));
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function getValidStoredToken() {
+      const currentToken = localStorage.getItem('rupi_token');
+      if (!currentToken) return null;
+
+      const payload = decodeJwtPayload(currentToken);
+      if (payload && payload.exp && Date.now() >= payload.exp * 1000) {
+        localStorage.removeItem('rupi_token');
+        localStorage.removeItem('rupi_user');
+        return null;
+      }
+
+      return currentToken;
+    }
+
+    function redirectToLogin(message) {
+      if (message) alert(message);
+      window.location.href = '../../pages/auth/login.html';
+    }
+
     function goToStep(n) {
       // Hide all panels
       for (let i = 1; i <= totalSteps; i++) {
@@ -485,13 +519,21 @@
       btn.innerHTML = '<span class="spinner"></span> Saving…';
 
       try {
-        const token = localStorage.getItem('rupi_token');
+        const token = getValidStoredToken();
+        if (!token) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
         const res = await fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ ...profileData, profileComplete: true })
         });
         const data = await res.json();
+        if (res.status === 401) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
         if (!res.ok) throw new Error(data.detail || data.message || 'Save failed');
         localStorage.setItem('rupi_user', JSON.stringify({ ...storedUser, ...profileData, profileComplete: true }));
         window.location.href = '../../pages/auth/user-profile.html';
@@ -519,36 +561,175 @@
     const uploadZone = document.getElementById('uploadZone');
     const docInput = document.getElementById('docUpload');
     const uploadedList = document.getElementById('uploadedFiles');
-    let uploadedFiles = [];
+    let docFiles = [];
 
-    function renderUploadedFiles() {
-      uploadedList.innerHTML = uploadedFiles.map((f, i) => `
-        <div class="uploaded-file">
-          <div class="uploaded-file-icon">${f.name.endsWith('.pdf') ? '📄' : '🖼️'}</div>
-          <div class="uploaded-file-name">${f.name}</div>
-          <div class="uploaded-file-size">${(f.size / 1024).toFixed(0)} KB</div>
-          <button class="uploaded-file-remove" onclick="removeFile(${i})">✕</button>
-        </div>
-      `).join('');
+    function mapApiDocument(doc) {
+      const extractionStatus = doc.extraction_status || '';
+      const normalizedStatus = extractionStatus === 'success'
+        ? 'completed'
+        : (extractionStatus === 'failed' ? 'failed' : 'processing');
+
+      return {
+        upload_id: doc.upload_id,
+        name: doc.filename,
+        size: 'Server stored',
+        date: new Date(doc.created_at).toLocaleDateString('en-IN'),
+        verified: extractionStatus === 'success',
+        status: normalizedStatus,
+        stepMessage: extractionStatus === 'success'
+          ? 'Extraction complete'
+          : (extractionStatus === 'failed' ? 'Extraction failed' : 'Processing on server...'),
+        documentType: (doc.document_type || '').replace(/_/g, ' ').toUpperCase()
+      };
     }
 
-    function removeFile(i) {
-      uploadedFiles.splice(i, 1);
+    function renderUploadedFiles() {
+      uploadedList.innerHTML = docFiles.length ? docFiles.map((doc, i) => `
+        <div class="uploaded-file">
+          <div class="uploaded-file-icon">${doc.name.toLowerCase().endsWith('.pdf') ? '📄' : '🖼️'}</div>
+          <div class="uploaded-file-name">${doc.name}</div>
+          <div class="uploaded-file-size">${doc.documentType || 'DOCUMENT'} · ${doc.size} · ${doc.stepMessage || `Uploaded ${doc.date}`}</div>
+          <button class="uploaded-file-remove" onclick="removeFile(${i})">✕</button>
+        </div>
+      `).join('') : '<div style="text-align:center;color:var(--text-muted);font-size:0.875rem;padding:20px 8px;">No documents uploaded yet. Upload your Form 16 to sync it here.</div>';
+    }
+
+    async function loadDocuments() {
+      const token = getValidStoredToken();
+      if (!token) {
+        renderUploadedFiles();
+        return;
+      }
+
+      try {
+        const res = await fetch(apiUrl('/api/user/documents'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401) {
+          redirectToLogin('Your session has expired. Please sign in again.');
+          return;
+        }
+        if (!res.ok) {
+          renderUploadedFiles();
+          return;
+        }
+        const docs = await res.json();
+        docFiles = Array.isArray(docs) ? docs.map(mapApiDocument) : [];
+        renderUploadedFiles();
+      } catch (_) {
+        renderUploadedFiles();
+      }
+    }
+
+    async function removeFile(i) {
+      const doc = docFiles[i];
+      if (!doc) return;
+
+      const token = getValidStoredToken();
+      if (!token) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
+
+      if (doc.upload_id) {
+        try {
+          const res = await fetch(apiUrl(`/api/user/documents/${doc.upload_id}`), {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.status === 401) {
+            redirectToLogin('Your session has expired. Please sign in again.');
+            return;
+          }
+          if (!res.ok) {
+            throw new Error('Failed to remove document');
+          }
+        } catch (_) {
+          alert('Unable to remove document right now.');
+          return;
+        }
+      }
+
+      docFiles.splice(i, 1);
       renderUploadedFiles();
     }
 
     docInput.addEventListener('change', () => {
-      uploadedFiles = [...uploadedFiles, ...Array.from(docInput.files)];
-      renderUploadedFiles();
+      handleDocUploadFiles(Array.from(docInput.files));
     });
 
     uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault(); uploadZone.classList.remove('dragover');
-      uploadedFiles = [...uploadedFiles, ...Array.from(e.dataTransfer.files)];
-      renderUploadedFiles();
+      handleDocUploadFiles(Array.from(e.dataTransfer.files));
     });
+
+    async function handleDocUploadFiles(files) {
+      if (!files.length) return;
+
+      const token = getValidStoredToken();
+      if (!token) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
+
+      const allowedExt = ['.pdf', '.jpg', '.jpeg', '.png'];
+      const validFiles = files.filter((file) => {
+        const filename = file.name.toLowerCase();
+        const ext = filename.substring(filename.lastIndexOf('.'));
+        return allowedExt.includes(ext);
+      });
+
+      if (!validFiles.length) {
+        alert('Only PDF, JPG, and PNG files are allowed');
+        return;
+      }
+
+      for (const file of validFiles) {
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`${file.name} is larger than 10MB`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const res = await fetch(apiUrl('/api/user/documents'), {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+
+          if (res.status === 401) {
+            redirectToLogin('Your session has expired. Please sign in again.');
+            return;
+          }
+
+          const raw = await res.text();
+          let payload = {};
+          try {
+            payload = raw ? JSON.parse(raw) : {};
+          } catch (_) {
+            payload = { detail: raw };
+          }
+
+          if (!res.ok) {
+            throw new Error(payload.detail || 'Upload failed');
+          }
+
+          docFiles.unshift(mapApiDocument(payload));
+          renderUploadedFiles();
+        } catch (err) {
+          alert(err.message || `Failed to upload ${file.name}`);
+        }
+      }
+
+      docInput.value = '';
+    }
+
+    loadDocuments();
   </script>
 </body>
 </html>
