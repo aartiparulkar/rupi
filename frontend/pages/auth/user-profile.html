@@ -179,7 +179,7 @@
     .toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--accent); }
 
     .toast {
-      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      position: fixed; top: 24px; right: 24px; z-index: 999;
       padding: 12px 20px; background: var(--bg-card); border: 1px solid var(--border-default);
       border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-primary);
       box-shadow: 0 8px 24px rgba(0,0,0,0.4); opacity: 0; transform: translateY(8px);
@@ -195,7 +195,7 @@
   <nav class="nav" role="navigation">
     <div class="nav-inner">
       <a href="../../index.html" class="nav-logo">
-        <div class="nav-logo-icon">Ru</div>
+        <div class="nav-logo-icon">₹</div>
         <span class="nav-logo-text">RuPi</span>
         <span class="nav-logo-version">Your every rupee counts.</span>
       </a>
@@ -387,12 +387,39 @@
       redirectToLogin('Your session has expired. Please sign in again.');
     }
 
-    // ── Populate sidebar ──
-    const fullName = `${storedUser.firstName || ''} ${storedUser.lastName || ''}`.trim() || 'User';
-    document.getElementById('sidebarName').textContent = fullName;
-    document.getElementById('sidebarEmail').textContent = storedUser.email || '';
-    document.getElementById('avatarInitials').textContent = (fullName[0] || '?').toUpperCase();
-    document.getElementById('navUserName').textContent = `Hi, ${storedUser.firstName || 'there'}`;
+    // ── Sidebar / profile helpers ──
+    function populateSidebar() {
+      const fullName = `${storedUser.firstName || ''} ${storedUser.lastName || ''}`.trim() || 'User';
+      document.getElementById('sidebarName').textContent = fullName;
+      document.getElementById('sidebarEmail').textContent = storedUser.email || '';
+      document.getElementById('avatarInitials').textContent = (fullName[0] || '?').toUpperCase();
+      document.getElementById('navUserName').textContent = `Hi, ${storedUser.firstName || 'there'}`;
+    }
+
+    function saveStoredUser(user) {
+      storedUser = { ...storedUser, ...user };
+      localStorage.setItem('rupi_user', JSON.stringify(storedUser));
+      populateSidebar();
+      renderProfileGrid();
+    }
+
+    async function loadUserProfile() {
+      if (!token) return;
+      try {
+        const res = await fetch(apiUrl('/api/user/profile'), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Unable to load profile');
+        const data = await res.json();
+        if (data?.user) {
+          saveStoredUser(data.user);
+        }
+      } catch (err) {
+        console.warn('Profile load failed:', err);
+      }
+    }
+
+    populateSidebar();
 
     // ── Tab switching ──
     function showTab(name) {
@@ -447,6 +474,7 @@
       `).join('');
     }
     renderProfileGrid();
+    loadUserProfile();
 
     function toggleEdit() {
       const btn = document.getElementById('editBtn');
@@ -456,39 +484,58 @@
         btn.className = 'profile-save-btn';
         renderProfileGrid();
       } else {
-        // Collect updated values
+        const updates = {};
         document.querySelectorAll('[data-key]').forEach(input => {
-          storedUser[input.dataset.key] = input.value;
+          updates[input.dataset.key] = input.value;
         });
-        localStorage.setItem('rupi_user', JSON.stringify(storedUser));
         const currentToken = getValidStoredToken();
         if (!currentToken) {
           redirectToLogin('Your session has expired. Please sign in again.');
           return;
         }
         // Push to backend
+
+        const payload = {
+          ...updates,
+          firstName: updates.firstName || storedUser.firstName,
+          lastName: updates.lastName || storedUser.lastName,
+          profileComplete: true,
+        };
+
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-          body: JSON.stringify(storedUser)
-        }).then((res) => {
-          if (res.status === 401) {
-            redirectToLogin('Your session has expired. Please sign in again.');
-          }
-        }).catch(() => {}); // silently fail in dev
-        editMode = false;
-        btn.textContent = 'Edit Profile';
-        btn.className = 'profile-edit-btn';
-        renderProfileGrid();
-        showToast('Profile saved successfully ✓', 'success');
+          body: JSON.stringify(payload)
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || 'Unable to save profile');
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (data?.user) {
+              saveStoredUser(data.user);
+            }
+            editMode = false;
+            btn.textContent = 'Edit Profile';
+            btn.className = 'profile-edit-btn';
+            showToast('Profile saved successfully ✓', 'success');
+          })
+          .catch((err) => {
+            console.error('Profile save failed:', err);
+            showToast('Could not save profile. Try again.', 'error');
+          });
       }
     }
 
     // ── Chat History ──
     function renderChatHistory() {
       const list = document.getElementById('chatHistoryList');
-      const history = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
-      if (!history.length) {
+      const chatHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      
+      if (!chatHistory.length) {
         list.innerHTML = `
           <div class="chat-empty">
             <div class="chat-empty-icon">💬</div>
@@ -498,24 +545,33 @@
           </div>`;
         return;
       }
+
       const AGENT_META = {
-        tax:        { icon: '⚙️', color: 'var(--tax-color)',      bg: 'var(--tax-color-muted)',      href: '../agents/tax.html' },
-        investment: { icon: '▲',  color: 'var(--invest-color)',   bg: 'var(--invest-color-muted)',   href: '../agents/investment.html' },
-        security:   { icon: '🔒', color: 'var(--security-color)', bg: 'var(--security-color-muted)', href: '../agents/security.html' }
+        tax:        { icon: '⚙️', color: 'var(--tax-color)',      bg: 'rgba(245,184,76,0.1)',      href: '../agents/tax.html' },
+        investment: { icon: '▲',  color: 'var(--invest-color)',   bg: 'rgba(88,170,255,0.12)',    href: '../agents/investment.html' },
+        security:   { icon: '🔒', color: 'var(--security-color)', bg: 'rgba(245,91,91,0.12)',    href: '../agents/security.html' }
       };
-      list.innerHTML = history.map(session => {
-        const meta = AGENT_META[session.agent] || AGENT_META.tax;
+
+      list.innerHTML = chatHistory.map((chat, idx) => {
+        const meta = AGENT_META[chat.agent] || AGENT_META.tax;
         return `
-          <div class="chat-session" onclick="window.location.href='${meta.href}'">
+          <div class="chat-session" onclick="resumeChat('${chat.id}', '${meta.href}')">
             <div class="chat-session-icon" style="background:${meta.bg};color:${meta.color};">${meta.icon}</div>
             <div class="chat-session-info">
-              <div class="chat-session-agent" style="color:${meta.color};">${session.agent} Agent</div>
-              <div class="chat-session-preview">${session.preview || 'Click to resume conversation'}</div>
+              <div class="chat-session-agent" style="color:${meta.color};">${chat.agent.toUpperCase()} AGENT</div>
+              <div style="font-size:0.9rem;color:var(--text-primary);font-weight:500;margin-top:4px;margin-bottom:6px;">${chat.title || 'Untitled Chat'}</div>
+              <div class="chat-session-preview">${chat.preview || 'Click to resume conversation'}</div>
             </div>
-            <div class="chat-session-time">${session.time || ''}</div>
+            <div class="chat-session-time" style="white-space:nowrap; margin-left: 12px;">${chat.time || ''}</div>
           </div>`;
       }).join('');
     }
+    
+    function resumeChat(chatId, href) {
+      sessionStorage.setItem('rupi_load_chat_id', chatId);
+      window.location.href = href;
+    }
+    
     renderChatHistory();
 
     // ── Documents ──

@@ -435,24 +435,41 @@ function initTiltCards() {
   });
 }
 
-// ── Floating AI Orb ───────────────────────────────────────────
+// ── Floating AI Orb removed to eliminate bottom-right animation and fixed UI elements.
 function attachAIOrb() {
-  if (document.getElementById('aiGlobalOrb')) return;
-  const orb = document.createElement('div');
-  orb.id = 'aiGlobalOrb';
-  orb.innerHTML = `
-    <div style="width:50px; height:50px; border-radius:50%; background:radial-gradient(circle at 30% 30%, rgba(79, 195, 247, 0.9), rgba(13, 26, 51, 0.9)); box-shadow: 0 0 20px rgba(79, 195, 247, 0.6); display:flex; align-items:center; justify-content:center; cursor:pointer; position:fixed; bottom:30px; right:30px; z-index:9999; animation: orbFloat 4s ease-in-out infinite, pulseGlow 2s infinite alternate;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8f4fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    </div>
-    <style>
-      @keyframes orbFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-      @keyframes pulseGlow { from { box-shadow: 0 0 10px rgba(79, 195, 247, 0.4); } to { box-shadow: 0 0 25px rgba(79, 195, 247, 0.8); } }
-    </style>
-  `;
-  document.body.appendChild(orb);
+  // intentionally disabled
+}
 
-  orb.addEventListener('click', () => {
-    showToast('RuPi AI Agent is analyzing your current view...', 'info');
+function removeFloatingCurrencyOrb() {
+  const candidates = Array.from(document.querySelectorAll(
+    '.fab-rupee, .ai-orb, .ai-global-orb, #aiGlobalOrb, #ai-global-orb, [class*=\"fab-\"], [id*=\"orb\"]'
+  ));
+
+  const removeIfOrb = (el) => {
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || parseFloat(style.opacity) === 0) return;
+    if (style.position !== 'fixed') return;
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const text = (el.textContent || '').trim();
+    const hasCurrency = /\$|₹/.test(text);
+    const isCorner = rect.left > window.innerWidth * 0.35 && rect.top > window.innerHeight * 0.35;
+    if (hasCurrency && isCorner) {
+      el.remove();
+    }
+  };
+
+  candidates.forEach(removeIfOrb);
+
+  document.querySelectorAll('body *').forEach(el => {
+    const style = window.getComputedStyle(el);
+    if (style.position !== 'fixed') return;
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height || rect.width > 140 || rect.height > 140) return;
+    const text = (el.textContent || '').trim();
+    if (text && /\$|₹/.test(text) && rect.left > window.innerWidth * 0.35 && rect.top > window.innerHeight * 0.35) {
+      el.remove();
+    }
   });
 }
 
@@ -572,7 +589,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initTypingEffect();
   initCopyBtns();
   initTiltCards();
-  attachAIOrb();
+  removeFloatingCurrencyOrb();
+  setTimeout(removeFloatingCurrencyOrb, 200);
+  setTimeout(removeFloatingCurrencyOrb, 800);
+  window.addEventListener('load', removeFloatingCurrencyOrb);
+  // attachAIOrb(); // removed floating bottom-right orb
 
   // Cinematic Video Fallback
   (function() {
