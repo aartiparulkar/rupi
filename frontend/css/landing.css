@@ -40,6 +40,8 @@
   display: flex;
   align-items: center;
   padding-top: var(--nav-height);
+  padding-left: 32px;
+  padding-right: 32px;
   position: relative;
   overflow: hidden;
   will-change: auto;
@@ -122,12 +124,22 @@
   position: relative;
   z-index: 10;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-16);
   align-items: center;
   width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
+.hero-title {
+  max-width: 680px;
+}
+
+.hero-subtitle {
+  max-width: 520px;
+}
 
 .hero-overline {
   display: inline-flex;
@@ -210,6 +222,8 @@
 /* Hero visual */
 .hero-visual {
   position: relative;
+  padding-left: 0;
+  margin-left: -16px;
 }
 
 .hero-card-stack {
@@ -329,7 +343,7 @@
 
 .float-card-2 {
   bottom: 40px;
-  left: -40px;
+  left: 8px;
   animation-delay: 1.5s;
   z-index: 13;
 }
