@@ -1,0 +1,103 @@
+Category:
+  - Balanced
+Pre Advice:
+  - Invest in a mix of equity and debt to balance growth and stability, Use SIP for regular investing, Avoid market timing
+Hybrid Mutual Funds:
+  Description:
+    - Hybrid mutual funds invest in both equity (stocks) and debt (bonds) to provide a balance of growth and stability.
+  Asset Definition:
+    Equity:
+      Type:
+        - Growth asset
+      Examples:
+        - Stocks
+        - Equity mutual funds
+        - Index funds
+    Debt:
+      Type:
+        - Safe asset
+      Examples:
+        - Fixed Deposit
+        - Debt funds
+        - Bonds
+  Safe Risk:
+    Returns:
+      - ~7% – 9%
+    Which One:
+      - Conservative Hybrid Funds
+    Best For:
+      - Low risk with slightly better returns than FD
+  Medium Risk:
+    Returns:
+      - ~9% – 12%
+    Which One:
+      - Balanced Advantage Funds, Aggressive Hybrid Funds
+    Best For:
+      - Balanced growth with moderate risk
+  High Risky:
+    Returns:
+      - ~12% – 14%+
+    Which One:
+      - Equity-Oriented Hybrid Funds
+    Best For:
+      - Higher returns with market exposure
+    Advice:
+      - Invest only if you can handle short-term fluctuations
+  Strategy:
+    Description:
+      - Invest regularly using SIP to reduce market timing risk and build wealth steadily.
+    Benefits:
+      - Reduces risk compared to pure equity
+      - Provides stable and consistent returns
+      - Automatic diversification between equity and debt
+    Example:
+      - Invest ₹2000 per month in a balanced advantage fund for 5 years
+Mix Equity Debt:
+  Description:
+    - Allocate your money between equity and debt to balance risk and return.
+  Asset Definition:
+    Equity:
+      Type:
+        - Growth asset
+      Examples:
+        - Stocks
+        - Equity mutual funds
+        - Index funds
+    Debt:
+      Type:
+        - Safe asset
+      Examples:
+        - Fixed Deposit
+        - Debt funds
+        - Bonds
+  Allocation:
+    Equity Percent:
+      - 50
+      - 70
+    Debt Percent:
+      - 30
+      - 50
+  Strategy:
+    Description:
+      - Maintain a balanced portfolio by combining growth assets (equity) and safe assets (debt).
+    Rules:
+      - Do not invest 100% in equity
+      - Rebalance portfolio every 6-12 months
+      - Increase equity slowly as risk tolerance improves
+    Example:
+      - Invest ₹50,000 in equity mutual funds and ₹30,000 in FD or debt funds
+  Benefits:
+    - Better returns than FD
+    - Lower risk than full equity investment
+    - Stable portfolio during market fluctuations
+Post Advice:
+  - Maintain a balance between equity (growth) and debt (stability)
+  - Do not over-invest in equity beyond your risk capacity
+  - Use SIP for consistent and disciplined investing
+  - Avoid trying to time the market
+  - Rebalance your portfolio every 6–12 months
+  - Keep some portion in safe assets for stability
+  - Do not panic during market fluctuations
+  - Increase equity exposure gradually as confidence grows
+  - Diversify across hybrid funds and direct equity-debt mix
+  - Stay invested for medium to long term (3–5 years)

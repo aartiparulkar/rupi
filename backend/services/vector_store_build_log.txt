@@ -1,0 +1,7 @@
+Total Documents: 56
+Sample Metadata:
+{'source': 'clean_Aggresive.txt', 'seq_num': 0, 'chunk_id': 0}
+{'source': 'clean_Aggresive.txt', 'seq_num': 1, 'chunk_id': 1}
+{'source': 'clean_Aggresive.txt', 'seq_num': 2, 'chunk_id': 2}
+{'source': 'clean_Aggresive.txt', 'seq_num': 3, 'chunk_id': 3}
+{'source': 'clean_Aggresive.txt', 'seq_num': 4, 'chunk_id': 4}

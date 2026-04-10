@@ -382,196 +382,196 @@ function initDeductionSuggestions() {
 }
 
 // ── Investment Agent ───────────────────────────────────────────
-function initInvestAgent() {
-  if (!document.querySelector('.agent-page.invest')) return;
+// function initInvestAgent() {
+//   if (!document.querySelector('.agent-page.invest')) return;
 
-  const analyzeBtn = document.getElementById('analyze-portfolio-btn');
-  const resultSection = document.getElementById('invest-result');
+//   const analyzeBtn = document.getElementById('analyze-portfolio-btn');
+//   const resultSection = document.getElementById('invest-result');
 
-  if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', () => {
-      const amount = parseFloat(document.getElementById('invest-amount')?.value) || 0;
-      const horizon = document.getElementById('invest-horizon')?.value || '5';
-      const risk = document.getElementById('risk-profile')?.value || 'moderate';
-      const goal = document.getElementById('invest-goal')?.value || '';
+//   if (analyzeBtn) {
+//     analyzeBtn.addEventListener('click', () => {
+//       const amount = parseFloat(document.getElementById('invest-amount')?.value) || 0;
+//       const horizon = document.getElementById('invest-horizon')?.value || '5';
+//       const risk = document.getElementById('risk-profile')?.value || 'moderate';
+//       const goal = document.getElementById('invest-goal')?.value || '';
 
-      if (!amount) {
-        showToast('Please enter an investment amount to continue.', 'warning');
-        return;
-      }
+//       if (!amount) {
+//         showToast('Please enter an investment amount to continue.', 'warning');
+//         return;
+//       }
 
-      analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = `
-        <div class="loader" style="padding:0;gap:6px;display:inline-flex;">
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-        </div>
-        Analyzing market data...
-      `;
+//       analyzeBtn.disabled = true;
+//       analyzeBtn.innerHTML = `
+//         <div class="loader" style="padding:0;gap:6px;display:inline-flex;">
+//           <div class="loader-dot"></div>
+//           <div class="loader-dot"></div>
+//           <div class="loader-dot"></div>
+//         </div>
+//         Analyzing market data...
+//       `;
 
-      setTimeout(() => {
-        analyzeBtn.disabled = false;
-        analyzeBtn.textContent = 'Generate Investment Plan';
+//       setTimeout(() => {
+//         analyzeBtn.disabled = false;
+//         analyzeBtn.textContent = 'Generate Investment Plan';
 
-        const plan = computeInvestmentPlan(amount, parseInt(horizon), risk, goal);
-        renderInvestResult(plan, resultSection);
+//         const plan = computeInvestmentPlan(amount, parseInt(horizon), risk, goal);
+//         renderInvestResult(plan, resultSection);
 
-        resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        showToast('Investment plan generated successfully.', 'success');
-      }, 2600);
-    });
-  }
+//         resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+//         showToast('Investment plan generated successfully.', 'success');
+//       }, 2600);
+//     });
+//   }
 
-  // Portfolio sparklines
-  initPortfolioSparklines();
+//   // Portfolio sparklines
+//   initPortfolioSparklines();
 
-  // Chat
-  initAgentChat('invest-chat', 'invest');
-}
+//   // Chat
+//   initAgentChat('invest-chat', 'invest');
+// }
 
-function computeInvestmentPlan(amount, horizonYears, risk, goal) {
-  const allocations = {
-    conservative: { equity: 25, debt: 55, gold: 10, liquid: 10 },
-    moderate:     { equity: 50, debt: 35, gold: 10, liquid: 5  },
-    aggressive:   { equity: 70, debt: 20, gold: 5,  liquid: 5  }
-  };
+// function computeInvestmentPlan(amount, horizonYears, risk, goal) {
+//   const allocations = {
+//     conservative: { equity: 25, debt: 55, gold: 10, liquid: 10 },
+//     moderate:     { equity: 50, debt: 35, gold: 10, liquid: 5  },
+//     aggressive:   { equity: 70, debt: 20, gold: 5,  liquid: 5  }
+//   };
 
-  const returns = {
-    conservative: 0.085,
-    moderate:     0.115,
-    aggressive:   0.145
-  };
+//   const returns = {
+//     conservative: 0.085,
+//     moderate:     0.115,
+//     aggressive:   0.145
+//   };
 
-  const alloc = allocations[risk] || allocations.moderate;
-  const expectedReturn = returns[risk] || returns.moderate;
-  const monthly = amount;
-  const months = horizonYears * 12;
-  const r = expectedReturn / 12;
+//   const alloc = allocations[risk] || allocations.moderate;
+//   const expectedReturn = returns[risk] || returns.moderate;
+//   const monthly = amount;
+//   const months = horizonYears * 12;
+//   const r = expectedReturn / 12;
 
-  // SIP future value
-  const fv = monthly * ((Math.pow(1 + r, months) - 1) / r) * (1 + r);
-  const totalInvested = monthly * months;
-  const estimatedGain = fv - totalInvested;
+//   // SIP future value
+//   const fv = monthly * ((Math.pow(1 + r, months) - 1) / r) * (1 + r);
+//   const totalInvested = monthly * months;
+//   const estimatedGain = fv - totalInvested;
 
-  const recommendations = [
-    { name: 'Nifty 50 Index Fund', type: 'Equity', alloc: alloc.equity * 0.6, return: '14-16%', risk: 'High' },
-    { name: 'Flexi Cap Fund',      type: 'Equity', alloc: alloc.equity * 0.4, return: '12-15%', risk: 'High' },
-    { name: 'Corporate Bond Fund', type: 'Debt',   alloc: alloc.debt * 0.5,   return: '7-9%',   risk: 'Low'  },
-    { name: 'Liquid Fund',         type: 'Liquid', alloc: alloc.liquid,        return: '4-6%',   risk: 'Very Low' },
-    { name: 'Gold ETF',            type: 'Gold',   alloc: alloc.gold,          return: '8-10%',  risk: 'Medium' },
-  ];
+//   const recommendations = [
+//     { name: 'Nifty 50 Index Fund', type: 'Equity', alloc: alloc.equity * 0.6, return: '14-16%', risk: 'High' },
+//     { name: 'Flexi Cap Fund',      type: 'Equity', alloc: alloc.equity * 0.4, return: '12-15%', risk: 'High' },
+//     { name: 'Corporate Bond Fund', type: 'Debt',   alloc: alloc.debt * 0.5,   return: '7-9%',   risk: 'Low'  },
+//     { name: 'Liquid Fund',         type: 'Liquid', alloc: alloc.liquid,        return: '4-6%',   risk: 'Very Low' },
+//     { name: 'Gold ETF',            type: 'Gold',   alloc: alloc.gold,          return: '8-10%',  risk: 'Medium' },
+//   ];
 
-  return { amount, horizonYears, risk, alloc, expectedReturn, fv, totalInvested, estimatedGain, recommendations };
-}
+//   return { amount, horizonYears, risk, alloc, expectedReturn, fv, totalInvested, estimatedGain, recommendations };
+// }
 
-function renderInvestResult(data, container) {
-  if (!container) return;
+// function renderInvestResult(data, container) {
+//   if (!container) return;
 
-  const fmt = (n) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n);
-  const cur = (n) => '₹' + fmt(n);
-  const pct = (n) => n.toFixed(0) + '%';
+//   const fmt = (n) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n);
+//   const cur = (n) => '₹' + fmt(n);
+//   const pct = (n) => n.toFixed(0) + '%';
 
-  const recHTML = data.recommendations.map(r => `
-    <tr>
-      <td class="td-label">${r.name}</td>
-      <td><span class="badge ${r.type === 'Equity' ? 'badge-blue' : r.type === 'Gold' ? 'badge-yellow' : 'badge-green'}" style="font-size:0.7rem;">${r.type}</span></td>
-      <td class="td-value">${pct(r.alloc)}</td>
-      <td class="td-neutral">${r.return} p.a.</td>
-    </tr>
-  `).join('');
+//   const recHTML = data.recommendations.map(r => `
+//     <tr>
+//       <td class="td-label">${r.name}</td>
+//       <td><span class="badge ${r.type === 'Equity' ? 'badge-blue' : r.type === 'Gold' ? 'badge-yellow' : 'badge-green'}" style="font-size:0.7rem;">${r.type}</span></td>
+//       <td class="td-value">${pct(r.alloc)}</td>
+//       <td class="td-neutral">${r.return} p.a.</td>
+//     </tr>
+//   `).join('');
 
-  container.style.display = 'block';
-  container.innerHTML = `
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <span class="icon-wrap" style="width:32px;height:32px;font-size:1rem;background:var(--invest-color-muted);color:var(--invest-color);">&#9650;</span>
-          Investment Plan
-        </div>
-        <span class="badge badge-blue">${data.risk.charAt(0).toUpperCase() + data.risk.slice(1)} Risk</span>
-      </div>
-      <div class="panel-body">
-        <div class="grid-4" style="gap:12px;margin-bottom:24px;">
-          <div class="agent-stat-item">
-            <div class="agent-stat-num" style="color:var(--invest-color);">${cur(data.fv)}</div>
-            <div class="agent-stat-label">Estimated Corpus</div>
-          </div>
-          <div class="agent-stat-item">
-            <div class="agent-stat-num">${cur(data.totalInvested)}</div>
-            <div class="agent-stat-label">Total Invested</div>
-          </div>
-          <div class="agent-stat-item">
-            <div class="agent-stat-num" style="color:var(--accent);">${cur(data.estimatedGain)}</div>
-            <div class="agent-stat-label">Est. Wealth Gain</div>
-          </div>
-          <div class="agent-stat-item">
-            <div class="agent-stat-num">${(data.expectedReturn * 100).toFixed(1)}%</div>
-            <div class="agent-stat-label">Expected CAGR</div>
-          </div>
-        </div>
+//   container.style.display = 'block';
+//   container.innerHTML = `
+//     <div class="panel">
+//       <div class="panel-header">
+//         <div class="panel-title">
+//           <span class="icon-wrap" style="width:32px;height:32px;font-size:1rem;background:var(--invest-color-muted);color:var(--invest-color);">&#9650;</span>
+//           Investment Plan
+//         </div>
+//         <span class="badge badge-blue">${data.risk.charAt(0).toUpperCase() + data.risk.slice(1)} Risk</span>
+//       </div>
+//       <div class="panel-body">
+//         <div class="grid-4" style="gap:12px;margin-bottom:24px;">
+//           <div class="agent-stat-item">
+//             <div class="agent-stat-num" style="color:var(--invest-color);">${cur(data.fv)}</div>
+//             <div class="agent-stat-label">Estimated Corpus</div>
+//           </div>
+//           <div class="agent-stat-item">
+//             <div class="agent-stat-num">${cur(data.totalInvested)}</div>
+//             <div class="agent-stat-label">Total Invested</div>
+//           </div>
+//           <div class="agent-stat-item">
+//             <div class="agent-stat-num" style="color:var(--accent);">${cur(data.estimatedGain)}</div>
+//             <div class="agent-stat-label">Est. Wealth Gain</div>
+//           </div>
+//           <div class="agent-stat-item">
+//             <div class="agent-stat-num">${(data.expectedReturn * 100).toFixed(1)}%</div>
+//             <div class="agent-stat-label">Expected CAGR</div>
+//           </div>
+//         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-          <div>
-            <h4 style="margin-bottom:12px;font-family:var(--font-display);">Asset Allocation</h4>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              ${[
-                { label: 'Equity', val: data.alloc.equity, color: 'var(--invest-color)' },
-                { label: 'Debt', val: data.alloc.debt, color: 'var(--accent)' },
-                { label: 'Gold', val: data.alloc.gold, color: 'var(--tax-color)' },
-                { label: 'Liquid', val: data.alloc.liquid, color: 'var(--text-muted)' },
-              ].map(a => `
-                <div>
-                  <div class="flex-between" style="margin-bottom:4px;">
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">${a.label}</span>
-                    <span style="font-size:0.8rem;font-weight:600;color:${a.color};">${a.val}%</span>
-                  </div>
-                  <div style="height:6px;border-radius:3px;background:var(--bg-surface);overflow:hidden;">
-                    <div style="height:100%;width:${a.val}%;background:${a.color};border-radius:3px;transition:width 0.8s ease;"></div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          <div>
-            <h4 style="margin-bottom:12px;font-family:var(--font-display);">Growth Projection</h4>
-            <canvas id="growth-sparkline" width="200" height="100" style="width:100%;height:100px;border-radius:8px;"></canvas>
-          </div>
-        </div>
+//         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+//           <div>
+//             <h4 style="margin-bottom:12px;font-family:var(--font-display);">Asset Allocation</h4>
+//             <div style="display:flex;flex-direction:column;gap:8px;">
+//               ${[
+//                 { label: 'Equity', val: data.alloc.equity, color: 'var(--invest-color)' },
+//                 { label: 'Debt', val: data.alloc.debt, color: 'var(--accent)' },
+//                 { label: 'Gold', val: data.alloc.gold, color: 'var(--tax-color)' },
+//                 { label: 'Liquid', val: data.alloc.liquid, color: 'var(--text-muted)' },
+//               ].map(a => `
+//                 <div>
+//                   <div class="flex-between" style="margin-bottom:4px;">
+//                     <span style="font-size:0.8rem;color:var(--text-secondary);">${a.label}</span>
+//                     <span style="font-size:0.8rem;font-weight:600;color:${a.color};">${a.val}%</span>
+//                   </div>
+//                   <div style="height:6px;border-radius:3px;background:var(--bg-surface);overflow:hidden;">
+//                     <div style="height:100%;width:${a.val}%;background:${a.color};border-radius:3px;transition:width 0.8s ease;"></div>
+//                   </div>
+//                 </div>
+//               `).join('')}
+//             </div>
+//           </div>
+//           <div>
+//             <h4 style="margin-bottom:12px;font-family:var(--font-display);">Growth Projection</h4>
+//             <canvas id="growth-sparkline" width="200" height="100" style="width:100%;height:100px;border-radius:8px;"></canvas>
+//           </div>
+//         </div>
 
-        <h4 style="margin-bottom:12px;font-family:var(--font-display);">Recommended Funds</h4>
-        <table class="breakdown-table">
-          <thead>
-            <tr><th>Fund</th><th>Type</th><th style="text-align:right;">Allocation</th><th style="text-align:right;">Est. Return</th></tr>
-          </thead>
-          <tbody>${recHTML}</tbody>
-        </table>
-      </div>
-    </div>
-  `;
+//         <h4 style="margin-bottom:12px;font-family:var(--font-display);">Recommended Funds</h4>
+//         <table class="breakdown-table">
+//           <thead>
+//             <tr><th>Fund</th><th>Type</th><th style="text-align:right;">Allocation</th><th style="text-align:right;">Est. Return</th></tr>
+//           </thead>
+//           <tbody>${recHTML}</tbody>
+//         </table>
+//       </div>
+//     </div>
+//   `;
 
-  // Draw sparkline
-  setTimeout(() => {
-    const canvas = document.getElementById('growth-sparkline');
-    if (canvas) {
-      const years = data.horizonYears;
-      const points = Array.from({ length: years + 1 }, (_, i) => {
-        const m = i * 12;
-        const r = data.expectedReturn / 12;
-        return data.amount * ((Math.pow(1 + r, m) - 1) / r) * (1 + r);
-      });
-      drawSparkline(canvas, points, 'var(--invest-color)');
-    }
-  }, 100);
-}
+//   // Draw sparkline
+//   setTimeout(() => {
+//     const canvas = document.getElementById('growth-sparkline');
+//     if (canvas) {
+//       const years = data.horizonYears;
+//       const points = Array.from({ length: years + 1 }, (_, i) => {
+//         const m = i * 12;
+//         const r = data.expectedReturn / 12;
+//         return data.amount * ((Math.pow(1 + r, m) - 1) / r) * (1 + r);
+//       });
+//       drawSparkline(canvas, points, 'var(--invest-color)');
+//     }
+//   }, 100);
+// }
 
-function initPortfolioSparklines() {
-  $$('canvas[data-sparkline]').forEach(canvas => {
-    const vals = canvas.dataset.sparkline.split(',').map(Number);
-    const color = canvas.dataset.color || '#3ddc52';
-    drawSparkline(canvas, vals, color);
-  });
-}
+// function initPortfolioSparklines() {
+//   $$('canvas[data-sparkline]').forEach(canvas => {
+//     const vals = canvas.dataset.sparkline.split(',').map(Number);
+//     const color = canvas.dataset.color || '#3ddc52';
+//     drawSparkline(canvas, vals, color);
+//   });
+// }
 
 // ── Security Agent ─────────────────────────────────────────────
 function initSecurityAgent() {
@@ -1169,6 +1169,6 @@ function appendMessage(container, text, role) {
 // ── Init All Agent Pages ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initTaxAgent();
-  initInvestAgent();
+  // initInvestAgent();
   initSecurityAgent();
 });

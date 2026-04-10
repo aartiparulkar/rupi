@@ -1,0 +1,61 @@
+Category:
+  - Survival
+Pre Advice:
+  - Reduce unnessary expenses, Invest In FD(fixed deposit), avoid Risky Investment
+Cut Expenses:
+  Description:
+    - Cut down on non-essential expenses to save money for emergencies.
+  Examples:
+    - Limit dining out and cook at home more often.
+    - Cancel unused subscriptions and memberships.
+    - Opt for budget-friendly entertainment options.
+Fixed Deposit:
+  Description:
+    - Invest in fixed deposits to earn a stable interest income while keeping your money safe.
+  Safe Risk:
+    Returns:
+      - ~6.3% – 6.7% per annum (varies by bank and tenure)
+    Which One:
+      - SBI, HDFC, ICICI, Axis
+    Best For:
+      - Stability + No tension
+  Medium Risk:
+    Returns:
+      - ~6.8% – 7.5% per annum (varies by bank and tenure)
+    Which One:
+      - IDFC First Bank (~7.5%), RBL Bank (~7.3%)
+    Best For:
+      - Better returns + Safety
+  High Risky:
+    Returns:
+      - ~7.5% – 8% per annum (varies by bank and tenure)
+    Which One:
+      - Small Finance Banks, Suryoday SFB (~7.9%),Jana SFB (~8%)
+    Best For:
+      - Higher returns + Willing to take some risk, Advice:Only invest:Max ₹5 lakh (insurance limit safety)
+  Strategy:
+    Description:
+      - Laddering strategy: Invest in multiple fixed deposits with different maturity dates to ensure liquidity and take advantage of varying interest rates.
+    Benefits:
+      - Provides regular income as deposits mature at different times.
+      - Reduces interest rate risk by diversifying across different rates and tenures.
+      - Ensures liquidity by having some deposits maturing sooner than others.
+    Example:
+      - Invest ₹1 lakh in a 1-year FD, ₹1 lakh in a 3-year FD, and ₹1 lakh in a 5-year FD. This way, you have access to funds at different intervals while maximizing returns.
+Post Advice:
+  - Review your financial plan regularly and adjust as needed.
+  - Build an emergency fund that covers at least 3-6 months of living expenses.
+  - Consider diversifying your investments to balance risk and returns.
+  - Avoid putting all money in low-return FDs.
+  - Avoid unknown small banks blindly.
+  - Avoid “high return guaranteed” scams.
+  - Choose cumulative FD if your goal is wealth growth, as interest compounds and gives higher returns over time
+  - Choose monthly or quarterly payout FD only if you need regular income
+  - Always check FD interest payout type before investing
+  - If your FD interest exceeds approx ₹40,000 per year (approx ₹50,000 for senior citizens), TDS will be deducted by the bank
+  - Even if TDS is not deducted, you must declare FD interest in your income tax return
+  - Submit Form 15G (below 60) or Form 15H (above 60) if your total income is below taxable limit to avoid TDS
+  - Do not submit Form 15G/15H if your income is taxable, as it can lead to penalties
+  - Senior citizens should take advantage of higher FD interest rates (usually +0.5%)
+  - Compare FD interest rates across banks before investing
+  - Prefer cumulative FD for long-term savings and non-cumulative FD for income needs

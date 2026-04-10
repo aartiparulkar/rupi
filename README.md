@@ -52,6 +52,9 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+pip install -qU  langchain-chroma
+pip install -qU  langchain-huggingface
+pip install sentence-transformers
 
 #### 2c. Configure Environment
 

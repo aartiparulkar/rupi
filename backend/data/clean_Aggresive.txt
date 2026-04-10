@@ -1,0 +1,128 @@
+Category:
+  - Aggressive
+Pre Advice:
+  - Invest in high growth assets like stocks and small-cap funds, Use SIP to manage volatility, Avoid emotional decisions based on market fluctuations
+High Growth Investments:
+  Stocks:
+    Description:
+      - Stocks represent ownership in companies and offer high return potential but come with high risk and volatility.
+    Safe Risk:
+      Returns:
+        - ~10% – 14%
+      Which One:
+        - Blue-chip stocks (large companies)
+      Examples:
+        - Reliance Industries
+        - TCS
+        - HDFC Bank
+      Best For:
+        - Stable growth with relatively lower risk in stock market
+    Medium Risk:
+      Returns:
+        - ~14% – 20%
+      Which One:
+        - Large + Mid-cap stocks
+      Examples:
+        - Infosys
+        - Larsen & Toubro
+        - Asian Paints
+      Best For:
+        - Balanced growth with moderate risk
+    High Risky:
+      Returns:
+        - ~20% – 30%+
+      Which One:
+        - Mid-cap & emerging companies
+      Examples:
+        - Emerging sector stocks
+        - High growth startups (listed)
+      Best For:
+        - High returns with high volatility
+      Advice:
+        - Invest only a portion and research properly
+    Strategy:
+      Description:
+        - Invest in fundamentally strong companies and hold for long term.
+      Rules:
+        - Do not invest all money in one stock
+        - Hold for long term (5+ years)
+        - Avoid emotional buying/selling
+      Example:
+        - Invest ₹20,000 across 4 strong companies instead of one
+  Small Cap Funds:
+    Description:
+      - Small-cap funds invest in smaller companies with high growth potential but very high risk.
+    Safe Risk:
+      Returns:
+        - ~12% – 15%
+      Which One:
+        - Diversified small-cap funds with strong track record
+      Best For:
+        - Moderate exposure to high-growth segment
+    Medium Risk:
+      Returns:
+        - ~15% – 20%
+      Which One:
+        - Actively managed small-cap mutual funds
+      Best For:
+        - Higher returns with volatility
+    High Risky:
+      Returns:
+        - ~20% – 30%+
+      Which One:
+        - Aggressive small-cap funds
+      Best For:
+        - Maximum growth potential
+      Advice:
+        - Limit allocation to 10–20% of total portfolio
+    Strategy:
+      Description:
+        - Invest through SIP to reduce risk and handle volatility.
+      Rules:
+        - Do not invest lump sum
+        - Stay invested for long term (5–7 years)
+        - Be prepared for market ups and downs
+      Example:
+        - Invest ₹3000/month in a small-cap fund via SIP
+  Diversified Portfolio:
+    Description:
+      - A diversified portfolio spreads investments across different assets to reduce overall risk.
+    Allocation:
+      Large Cap Percent:
+        - 30
+        - 40
+      Mid Cap Percent:
+        - 20
+        - 30
+      Small Cap Percent:
+        - 10
+        - 20
+      Debt Percent:
+        - 10
+        - 20
+    Which One:
+      - Mix of large-cap funds, mid-cap funds, small-cap funds, and some debt instruments
+    Strategy:
+      Description:
+        - Do not depend on a single asset; spread risk across multiple investments.
+      Rules:
+        - Diversify across sectors and asset types
+        - Rebalance portfolio every 6–12 months
+        - Reduce exposure to underperforming assets gradually
+      Example:
+        - Invest ₹40,000 in large-cap, ₹20,000 in mid-cap, ₹10,000 in small-cap, ₹10,000 in debt
+    Benefits:
+      - Reduces overall investment risk
+      - Balances loss in one asset with gain in another
+      - Provides more stable long-term returns
+Post Advice:
+  - Focus on long-term wealth creation (5+ years minimum)
+  - Do not panic during market crashes, volatility is normal
+  - Invest through SIP to manage market fluctuations
+  - Diversify across large-cap, mid-cap, and small-cap investments
+  - Limit small-cap exposure to avoid excessive risk
+  - Do not invest all money in a single stock or sector
+  - Rebalance your portfolio every 6–12 months
+  - Avoid emotional decisions like panic selling or FOMO buying
+  - Increase investment gradually as your income grows
+  - Always keep a small portion in safe assets for stability

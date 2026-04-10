@@ -1,0 +1,450 @@
+[
+  {
+    "content": "Category:\n  - Aggressive\nPre Advice:\n  - Invest in high growth assets like stocks and small-cap funds, Use SIP to manage volatility, Avoid emotional decisions based on market fluctuations\nHigh Growth Investments:\n  Stocks:\n    Description:\n      - Stocks represent ownership in companies and offer high return potential but come with high risk and volatility.\n    Safe Risk:\n      Returns:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 0,
+      "chunk_id": 0
+    }
+  },
+  {
+    "content": "Safe Risk:\n      Returns:\n        - ~10% \u2013 14%\n      Which One:\n        - Blue-chip stocks (large companies)\n      Examples:\n        - Reliance Industries\n        - TCS\n        - HDFC Bank\n      Best For:\n        - Stable growth with relatively lower risk in stock market\n    Medium Risk:\n      Returns:\n        - ~14% \u2013 20%\n      Which One:\n        - Large + Mid-cap stocks\n      Examples:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 1,
+      "chunk_id": 1
+    }
+  },
+  {
+    "content": "Which One:\n        - Large + Mid-cap stocks\n      Examples:\n        - Infosys\n        - Larsen & Toubro\n        - Asian Paints\n      Best For:\n        - Balanced growth with moderate risk\n    High Risky:\n      Returns:\n        - ~20% \u2013 30%+\n      Which One:\n        - Mid-cap & emerging companies\n      Examples:\n        - Emerging sector stocks\n        - High growth startups (listed)",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 2,
+      "chunk_id": 2
+    }
+  },
+  {
+    "content": "- Emerging sector stocks\n        - High growth startups (listed)\n      Best For:\n        - High returns with high volatility\n      Advice:\n        - Invest only a portion and research properly\n    Strategy:\n      Description:\n        - Invest in fundamentally strong companies and hold for long term.\n      Rules:\n        - Do not invest all money in one stock",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 3,
+      "chunk_id": 3
+    }
+  },
+  {
+    "content": "Rules:\n        - Do not invest all money in one stock\n        - Hold for long term (5+ years)\n        - Avoid emotional buying/selling\n      Example:\n        - Invest \u20b920,000 across 4 strong companies instead of one\n  Small Cap Funds:\n    Description:\n      - Small-cap funds invest in smaller companies with high growth potential but very high risk.\n    Safe Risk:\n      Returns:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 4,
+      "chunk_id": 4
+    }
+  },
+  {
+    "content": "Safe Risk:\n      Returns:\n        - ~12% \u2013 15%\n      Which One:\n        - Diversified small-cap funds with strong track record\n      Best For:\n        - Moderate exposure to high-growth segment\n    Medium Risk:\n      Returns:\n        - ~15% \u2013 20%\n      Which One:\n        - Actively managed small-cap mutual funds\n      Best For:\n        - Higher returns with volatility\n    High Risky:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 5,
+      "chunk_id": 5
+    }
+  },
+  {
+    "content": "Best For:\n        - Higher returns with volatility\n    High Risky:\n      Returns:\n        - ~20% \u2013 30%+\n      Which One:\n        - Aggressive small-cap funds\n      Best For:\n        - Maximum growth potential\n      Advice:\n        - Limit allocation to 10\u201320% of total portfolio\n    Strategy:\n      Description:\n        - Invest through SIP to reduce risk and handle volatility.\n      Rules:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 6,
+      "chunk_id": 6
+    }
+  },
+  {
+    "content": "- Invest through SIP to reduce risk and handle volatility.\n      Rules:\n        - Do not invest lump sum\n        - Stay invested for long term (5\u20137 years)\n        - Be prepared for market ups and downs\n      Example:\n        - Invest \u20b93000/month in a small-cap fund via SIP\n  Diversified Portfolio:\n    Description:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 7,
+      "chunk_id": 7
+    }
+  },
+  {
+    "content": "Diversified Portfolio:\n    Description:\n      - A diversified portfolio spreads investments across different assets to reduce overall risk.\n    Allocation:\n      Large Cap Percent:\n        - 30\n        - 40\n      Mid Cap Percent:\n        - 20\n        - 30\n      Small Cap Percent:\n        - 10\n        - 20\n      Debt Percent:\n        - 10\n        - 20\n    Which One:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 8,
+      "chunk_id": 8
+    }
+  },
+  {
+    "content": "- 20\n      Debt Percent:\n        - 10\n        - 20\n    Which One:\n      - Mix of large-cap funds, mid-cap funds, small-cap funds, and some debt instruments\n    Strategy:\n      Description:\n        - Do not depend on a single asset; spread risk across multiple investments.\n      Rules:\n        - Diversify across sectors and asset types\n        - Rebalance portfolio every 6\u201312 months",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 9,
+      "chunk_id": 9
+    }
+  },
+  {
+    "content": "- Rebalance portfolio every 6\u201312 months\n        - Reduce exposure to underperforming assets gradually\n      Example:\n        - Invest \u20b940,000 in large-cap, \u20b920,000 in mid-cap, \u20b910,000 in small-cap, \u20b910,000 in debt\n    Benefits:\n      - Reduces overall investment risk\n      - Balances loss in one asset with gain in another\n      - Provides more stable long-term returns\nPost Advice:",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 10,
+      "chunk_id": 10
+    }
+  },
+  {
+    "content": "- Provides more stable long-term returns\nPost Advice:\n  - Focus on long-term wealth creation (5+ years minimum)\n  - Do not panic during market crashes, volatility is normal\n  - Invest through SIP to manage market fluctuations\n  - Diversify across large-cap, mid-cap, and small-cap investments\n  - Limit small-cap exposure to avoid excessive risk",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 11,
+      "chunk_id": 11
+    }
+  },
+  {
+    "content": "- Limit small-cap exposure to avoid excessive risk\n  - Do not invest all money in a single stock or sector\n  - Rebalance your portfolio every 6\u201312 months\n  - Avoid emotional decisions like panic selling or FOMO buying\n  - Increase investment gradually as your income grows\n  - Always keep a small portion in safe assets for stability",
+    "metadata": {
+      "source": "clean_Aggresive.txt",
+      "seq_num": 12,
+      "chunk_id": 12
+    }
+  },
+  {
+    "content": "Category:\n  - Balanced\nPre Advice:\n  - Invest in a mix of equity and debt to balance growth and stability, Use SIP for regular investing, Avoid market timing\nHybrid Mutual Funds:\n  Description:\n    - Hybrid mutual funds invest in both equity (stocks) and debt (bonds) to provide a balance of growth and stability.\n  Asset Definition:\n    Equity:\n      Type:\n        - Growth asset\n      Examples:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 13,
+      "chunk_id": 13
+    }
+  },
+  {
+    "content": "Equity:\n      Type:\n        - Growth asset\n      Examples:\n        - Stocks\n        - Equity mutual funds\n        - Index funds\n    Debt:\n      Type:\n        - Safe asset\n      Examples:\n        - Fixed Deposit\n        - Debt funds\n        - Bonds\n  Safe Risk:\n    Returns:\n      - ~7% \u2013 9%\n    Which One:\n      - Conservative Hybrid Funds\n    Best For:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 14,
+      "chunk_id": 14
+    }
+  },
+  {
+    "content": "- ~7% \u2013 9%\n    Which One:\n      - Conservative Hybrid Funds\n    Best For:\n      - Low risk with slightly better returns than FD\n  Medium Risk:\n    Returns:\n      - ~9% \u2013 12%\n    Which One:\n      - Balanced Advantage Funds, Aggressive Hybrid Funds\n    Best For:\n      - Balanced growth with moderate risk\n  High Risky:\n    Returns:\n      - ~12% \u2013 14%+\n    Which One:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 15,
+      "chunk_id": 15
+    }
+  },
+  {
+    "content": "High Risky:\n    Returns:\n      - ~12% \u2013 14%+\n    Which One:\n      - Equity-Oriented Hybrid Funds\n    Best For:\n      - Higher returns with market exposure\n    Advice:\n      - Invest only if you can handle short-term fluctuations\n  Strategy:\n    Description:\n      - Invest regularly using SIP to reduce market timing risk and build wealth steadily.\n    Benefits:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 16,
+      "chunk_id": 16
+    }
+  },
+  {
+    "content": "Benefits:\n      - Reduces risk compared to pure equity\n      - Provides stable and consistent returns\n      - Automatic diversification between equity and debt\n    Example:\n      - Invest \u20b92000 per month in a balanced advantage fund for 5 years\nMix Equity Debt:\n  Description:\n    - Allocate your money between equity and debt to balance risk and return.\n  Asset Definition:\n    Equity:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 17,
+      "chunk_id": 17
+    }
+  },
+  {
+    "content": "Asset Definition:\n    Equity:\n      Type:\n        - Growth asset\n      Examples:\n        - Stocks\n        - Equity mutual funds\n        - Index funds\n    Debt:\n      Type:\n        - Safe asset\n      Examples:\n        - Fixed Deposit\n        - Debt funds\n        - Bonds\n  Allocation:\n    Equity Percent:\n      - 50\n      - 70\n    Debt Percent:\n      - 30\n      - 50\n  Strategy:\n    Description:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 18,
+      "chunk_id": 18
+    }
+  },
+  {
+    "content": "- 70\n    Debt Percent:\n      - 30\n      - 50\n  Strategy:\n    Description:\n      - Maintain a balanced portfolio by combining growth assets (equity) and safe assets (debt).\n    Rules:\n      - Do not invest 100% in equity\n      - Rebalance portfolio every 6-12 months\n      - Increase equity slowly as risk tolerance improves\n    Example:",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 19,
+      "chunk_id": 19
+    }
+  },
+  {
+    "content": "- Increase equity slowly as risk tolerance improves\n    Example:\n      - Invest \u20b950,000 in equity mutual funds and \u20b930,000 in FD or debt funds\n  Benefits:\n    - Better returns than FD\n    - Lower risk than full equity investment\n    - Stable portfolio during market fluctuations\nPost Advice:\n  - Maintain a balance between equity (growth) and debt (stability)",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 20,
+      "chunk_id": 20
+    }
+  },
+  {
+    "content": "- Maintain a balance between equity (growth) and debt (stability)\n  - Do not over-invest in equity beyond your risk capacity\n  - Use SIP for consistent and disciplined investing\n  - Avoid trying to time the market\n  - Rebalance your portfolio every 6\u201312 months\n  - Keep some portion in safe assets for stability\n  - Do not panic during market fluctuations",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 21,
+      "chunk_id": 21
+    }
+  },
+  {
+    "content": "- Do not panic during market fluctuations\n  - Increase equity exposure gradually as confidence grows\n  - Diversify across hybrid funds and direct equity-debt mix\n  - Stay invested for medium to long term (3\u20135 years)",
+    "metadata": {
+      "source": "clean_Balanced.txt",
+      "seq_num": 22,
+      "chunk_id": 22
+    }
+  },
+  {
+    "content": "Category:\n  - Conservative\nPre Advice:\n  - Focus on preserving capital, Invest in low-risk assets, Invest in Debt funds\nFixed Deposit:\n  Description:\n    - Invest in fixed deposits to earn a stable interest income while keeping your money safe.\n  Safe Risk:\n    Returns:\n      - ~6.3% \u2013 6.7% per annum (varies by bank and tenure)\n    Which One:\n      - SBI, HDFC, ICICI, Axis\n    Best For:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 23,
+      "chunk_id": 23
+    }
+  },
+  {
+    "content": "Which One:\n      - SBI, HDFC, ICICI, Axis\n    Best For:\n      - Stability + No tension\n  Medium Risk:\n    Returns:\n      - ~6.8% \u2013 7.5% per annum (varies by bank and tenure)\n    Which One:\n      - IDFC First Bank (~7.5%), RBL Bank (~7.3%)\n    Best For:\n      - Better returns + Safety\n  High Risky:\n    Returns:\n      - ~7.5% \u2013 8% per annum (varies by bank and tenure)\n    Which One:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 24,
+      "chunk_id": 24
+    }
+  },
+  {
+    "content": "- ~7.5% \u2013 8% per annum (varies by bank and tenure)\n    Which One:\n      - Small Finance Banks, Suryoday SFB (~7.9%),Jana SFB (~8%)\n    Best For:\n      - Higher returns + Willing to take some risk, Advice:Only invest:Max \u20b95 lakh (insurance limit safety)\n  Strategy:\n    Description:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 25,
+      "chunk_id": 25
+    }
+  },
+  {
+    "content": "Strategy:\n    Description:\n      - Laddering strategy: Invest in multiple fixed deposits with different maturity dates to ensure liquidity and take advantage of varying interest rates.\n    Benefits:\n      - Provides regular income as deposits mature at different times.\n      - Reduces interest rate risk by diversifying across different rates and tenures.",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 26,
+      "chunk_id": 26
+    }
+  },
+  {
+    "content": "- Ensures liquidity by having some deposits maturing sooner than others.\n    Example:\n      - Invest \u20b91 lakh in a 1-year FD, \u20b91 lakh in a 3-year FD, and \u20b91 lakh in a 5-year FD. This way, you have access to funds at different intervals while maximizing returns.\nDebt Funds:\n  Description:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 27,
+      "chunk_id": 27
+    }
+  },
+  {
+    "content": "Debt Funds:\n  Description:\n    - Debt funds invest in bonds and government securities and offer slightly better returns than FD & can handle small ups & downs.\n  Safe Risk:\n    Returns:\n      - ~6.5% \u2013 7%\n    Which One:\n      - Liquid Funds, Overnight Funds\n    Best For:\n      - Emergency fund and very short-term parking\n  Medium Risk:\n    Returns:\n      - ~7% \u2013 8%\n    Which One:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 28,
+      "chunk_id": 28
+    }
+  },
+  {
+    "content": "Medium Risk:\n    Returns:\n      - ~7% \u2013 8%\n    Which One:\n      - Short Duration Funds, Corporate Bond Funds\n    Best For:\n      - Better returns than FD with controlled risk\n  High Risky:\n    Returns:\n      - ~8% \u2013 9%\n    Which One:\n      - Credit Risk Funds\n    Best For:\n      - Higher return but with default risk\n    Advice:\n      - Avoid if you are beginner or survival category\n  Strategy:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 29,
+      "chunk_id": 29
+    }
+  },
+  {
+    "content": "Advice:\n      - Avoid if you are beginner or survival category\n  Strategy:\n    Description:\n      - Use debt funds for flexibility and better post-tax returns compared to FD.\n    Benefits:\n      - Higher liquidity than FD\n      - Better returns in some cases\n      - No fixed lock-in\n    Example:\n      - Keep emergency fund in liquid funds and short-term goals in short duration funds",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 30,
+      "chunk_id": 30
+    }
+  },
+  {
+    "content": "Low Risk Instruments:\n  Description:\n    - These are safe investment options backed by government or high-rated institutions.\n  Government Bonds:\n    Returns:\n      - ~6.5% \u2013 7.5%\n    Which One:\n      - RBI Floating Rate Bonds, Government Securities (G-Sec), Treasury Bills\n    Best For:\n      - Very safe long-term investment\n    Risk:\n      - Very low\n  Corporate Bonds:\n    Returns:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 31,
+      "chunk_id": 31
+    }
+  },
+  {
+    "content": "Risk:\n      - Very low\n  Corporate Bonds:\n    Returns:\n      - ~7.5% \u2013 9%\n    Which One:\n      - AAA-rated bonds from companies like HDFC, Reliance, PSU bonds\n    Best For:\n      - Higher returns than FD\n    Risk:\n      - Low to medium\n    Advice:\n      - Invest only in AAA-rated bonds\n  Ppf Epf:\n    Returns:\n      - ~7% \u2013 8%\n    Which One:",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 32,
+      "chunk_id": 32
+    }
+  },
+  {
+    "content": "Ppf Epf:\n    Returns:\n      - ~7% \u2013 8%\n    Which One:\n      - PPF (Public Provident Fund), EPF (Employee Provident Fund)\n    Best For:\n      - Long-term savings with tax benefits\n    Risk:\n      - Very low\n    Lockin:\n      - Long-term (5\u201315 years)\nPost Advice:\n  - Maintain a balance between safety and moderate returns",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 33,
+      "chunk_id": 33
+    }
+  },
+  {
+    "content": "Post Advice:\n  - Maintain a balance between safety and moderate returns\n  - Do not rely only on fixed deposits, include debt funds for better returns\n  - Invest regularly instead of waiting for perfect market timing\n  - Diversify your investments across FD, debt funds, and low-risk instruments\n  - Avoid high-risk investments like small-cap stocks or derivatives",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 34,
+      "chunk_id": 34
+    }
+  },
+  {
+    "content": "- Avoid high-risk investments like small-cap stocks or derivatives\n  - Use short to medium-term debt funds for better flexibility than FD\n  - Keep emergency fund separate and easily accessible\n  - Avoid locking all money in long-term FD\n  - Review your portfolio every 6\u201312 months\n  - Reinvest FD maturity amounts instead of keeping idle cash",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 35,
+      "chunk_id": 35
+    }
+  },
+  {
+    "content": "- Reinvest FD maturity amounts instead of keeping idle cash\n  - Choose high-rated (AAA) bonds and safe instruments only\n  - Do not chase high returns or trending investments\n  - Start small SIPs in low-risk or hybrid funds if comfortable\n  - Ensure liquidity is maintained for unexpected needs\n  - Gradually increase exposure to better-return assets as confidence grows",
+    "metadata": {
+      "source": "clean_Conservative.txt",
+      "seq_num": 36,
+      "chunk_id": 36
+    }
+  },
+  {
+    "content": "Category:\n  - Growth\nPre Advice:\n  - Focus on growth assets like equity mutual funds and index funds, Use SIP for regular investing, Avoid market timing\nEquity Investments:\n  Description:\n    - Equity investments focus on growth by investing in stock markets through mutual funds or index funds.\n  Equity Mutual Funds:\n    Safe Risk:\n      Returns:\n        - ~10% \u2013 12%\n      Which One:",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 37,
+      "chunk_id": 37
+    }
+  },
+  {
+    "content": "Safe Risk:\n      Returns:\n        - ~10% \u2013 12%\n      Which One:\n        - Large Cap Funds\n      Examples:\n        - SBI Bluechip Fund\n        - ICICI Prudential Bluechip Fund\n      Best For:\n        - Stable growth with lower risk\n    Medium Risk:\n      Returns:\n        - ~12% \u2013 15%\n      Which One:\n        - Flexi Cap Funds\n      Examples:\n        - Parag Parikh Flexi Cap Fund",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 38,
+      "chunk_id": 38
+    }
+  },
+  {
+    "content": "- Flexi Cap Funds\n      Examples:\n        - Parag Parikh Flexi Cap Fund\n        - UTI Flexi Cap Fund\n      Best For:\n        - Balanced growth across market segments\n    High Risky:\n      Returns:\n        - ~15% \u2013 18%+\n      Which One:\n        - Mid Cap Funds\n      Examples:\n        - Kotak Emerging Equity Fund\n        - Axis Midcap Fund\n      Best For:",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 39,
+      "chunk_id": 39
+    }
+  },
+  {
+    "content": "- Kotak Emerging Equity Fund\n        - Axis Midcap Fund\n      Best For:\n        - Higher returns with higher volatility\n      Advice:\n        - Limit allocation to 20-30% of portfolio\n  Index Funds:\n    Description:\n      - Index funds track market indices and provide stable long-term returns with low cost.\n    Safe Risk:\n      Returns:\n        - ~10% \u2013 12%\n      Which One:",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 40,
+      "chunk_id": 40
+    }
+  },
+  {
+    "content": "Safe Risk:\n      Returns:\n        - ~10% \u2013 12%\n      Which One:\n        - Nifty 50 Index Funds, Sensex Index Funds\n      Examples:\n        - UTI Nifty 50 Index Fund\n        - HDFC Index Fund Sensex Plan\n      Best For:\n        - Beginners and passive investors\n    Benefits:\n      - Low expense ratio\n      - No fund manager risk\n      - Consistent market returns\n  Sip Strategy:",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 41,
+      "chunk_id": 41
+    }
+  },
+  {
+    "content": "- No fund manager risk\n      - Consistent market returns\n  Sip Strategy:\n    Description:\n      - Systematic Investment Plan (SIP) allows you to invest a fixed amount regularly.\n    Rules:\n      - Invest monthly instead of lump sum\n      - Continue SIP during market ups and downs\n      - Increase SIP amount with income growth\n    Example:",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 42,
+      "chunk_id": 42
+    }
+  },
+  {
+    "content": "- Increase SIP amount with income growth\n    Example:\n      - Invest \u20b93000 per month in a Nifty 50 index fund for 5+ years\n    Benefits:\n      - Reduces market timing risk\n      - Builds disciplined investing habit\n      - Averages out market volatility\nPost Advice:\n  - Invest for long term (minimum 5+ years) to reduce risk\n  - Do not panic during market fluctuations",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 43,
+      "chunk_id": 43
+    }
+  },
+  {
+    "content": "- Do not panic during market fluctuations\n  - Avoid investing lump sum in volatile markets, prefer SIP\n  - Diversify across large-cap, flexi-cap and mid-cap funds\n  - Do not chase past high-performing funds\n  - Increase investment gradually as income grows\n  - Review portfolio every 6\u201312 months\n  - Limit mid-cap exposure to avoid high volatility",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 44,
+      "chunk_id": 44
+    }
+  },
+  {
+    "content": "- Limit mid-cap exposure to avoid high volatility\n  - Stay consistent with SIP even during market downturns\n  - Focus on disciplined investing rather than short-term gains",
+    "metadata": {
+      "source": "clean_Growth.txt",
+      "seq_num": 45,
+      "chunk_id": 45
+    }
+  },
+  {
+    "content": "Category:\n  - Survival\nPre Advice:\n  - Reduce unnessary expenses, Invest In FD(fixed deposit), avoid Risky Investment\nCut Expenses:\n  Description:\n    - Cut down on non-essential expenses to save money for emergencies.\n  Examples:\n    - Limit dining out and cook at home more often.\n    - Cancel unused subscriptions and memberships.\n    - Opt for budget-friendly entertainment options.",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 46,
+      "chunk_id": 46
+    }
+  },
+  {
+    "content": "- Opt for budget-friendly entertainment options.\nFixed Deposit:\n  Description:\n    - Invest in fixed deposits to earn a stable interest income while keeping your money safe.\n  Safe Risk:\n    Returns:\n      - ~6.3% \u2013 6.7% per annum (varies by bank and tenure)\n    Which One:\n      - SBI, HDFC, ICICI, Axis\n    Best For:\n      - Stability + No tension\n  Medium Risk:\n    Returns:",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 47,
+      "chunk_id": 47
+    }
+  },
+  {
+    "content": "Best For:\n      - Stability + No tension\n  Medium Risk:\n    Returns:\n      - ~6.8% \u2013 7.5% per annum (varies by bank and tenure)\n    Which One:\n      - IDFC First Bank (~7.5%), RBL Bank (~7.3%)\n    Best For:\n      - Better returns + Safety\n  High Risky:\n    Returns:\n      - ~7.5% \u2013 8% per annum (varies by bank and tenure)\n    Which One:",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 48,
+      "chunk_id": 48
+    }
+  },
+  {
+    "content": "- ~7.5% \u2013 8% per annum (varies by bank and tenure)\n    Which One:\n      - Small Finance Banks, Suryoday SFB (~7.9%),Jana SFB (~8%)\n    Best For:\n      - Higher returns + Willing to take some risk, Advice:Only invest:Max \u20b95 lakh (insurance limit safety)\n  Strategy:\n    Description:",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 49,
+      "chunk_id": 49
+    }
+  },
+  {
+    "content": "Strategy:\n    Description:\n      - Laddering strategy: Invest in multiple fixed deposits with different maturity dates to ensure liquidity and take advantage of varying interest rates.\n    Benefits:\n      - Provides regular income as deposits mature at different times.\n      - Reduces interest rate risk by diversifying across different rates and tenures.",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 50,
+      "chunk_id": 50
+    }
+  },
+  {
+    "content": "- Ensures liquidity by having some deposits maturing sooner than others.\n    Example:\n      - Invest \u20b91 lakh in a 1-year FD, \u20b91 lakh in a 3-year FD, and \u20b91 lakh in a 5-year FD. This way, you have access to funds at different intervals while maximizing returns.\nPost Advice:\n  - Review your financial plan regularly and adjust as needed.",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 51,
+      "chunk_id": 51
+    }
+  },
+  {
+    "content": "Post Advice:\n  - Review your financial plan regularly and adjust as needed.\n  - Build an emergency fund that covers at least 3-6 months of living expenses.\n  - Consider diversifying your investments to balance risk and returns.\n  - Avoid putting all money in low-return FDs.\n  - Avoid unknown small banks blindly.\n  - Avoid \u201chigh return guaranteed\u201d scams.",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 52,
+      "chunk_id": 52
+    }
+  },
+  {
+    "content": "- Avoid \u201chigh return guaranteed\u201d scams.\n  - Choose cumulative FD if your goal is wealth growth, as interest compounds and gives higher returns over time\n  - Choose monthly or quarterly payout FD only if you need regular income\n  - Always check FD interest payout type before investing",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 53,
+      "chunk_id": 53
+    }
+  },
+  {
+    "content": "- Always check FD interest payout type before investing\n  - If your FD interest exceeds approx \u20b940,000 per year (approx \u20b950,000 for senior citizens), TDS will be deducted by the bank\n  - Even if TDS is not deducted, you must declare FD interest in your income tax return\n  - Submit Form 15G (below 60) or Form 15H (above 60) if your total income is below taxable limit to avoid TDS",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 54,
+      "chunk_id": 54
+    }
+  },
+  {
+    "content": "- Do not submit Form 15G/15H if your income is taxable, as it can lead to penalties\n  - Senior citizens should take advantage of higher FD interest rates (usually +0.5%)\n  - Compare FD interest rates across banks before investing\n  - Prefer cumulative FD for long-term savings and non-cumulative FD for income needs",
+    "metadata": {
+      "source": "clean_Survival.txt",
+      "seq_num": 55,
+      "chunk_id": 55
+    }
+  }
+]

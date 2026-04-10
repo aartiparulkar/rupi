@@ -21,6 +21,7 @@ from scheduler import start_scheduler, stop_scheduler
 from services.auth_service import AuthService
 from services.auth_utils import AuthUtils
 from services.chat_service import ChatService
+from routes.investment_api import router as investment_router
 
 logging.basicConfig(
     level=settings.log_level,
@@ -70,7 +71,7 @@ app.include_router(auth_router)
 app.include_router(documents_router)
 app.include_router(calculations_router)
 app.include_router(docs_router)
-
+app.include_router(investment_router)
 
 @app.get("/health")
 async def health_check():
