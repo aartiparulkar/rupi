@@ -202,18 +202,26 @@ a:hover {
 }
 
 /* ── LAYOUT ── */
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .container {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 4px;
+  width: 100%;
+  margin: 0;
+  padding: 0 32px;
 }
 
 .section {
-  padding: var(--space-24) 0;
+  padding: var(--space-24) 32px;
 }
 
 .section-sm {
-  padding: var(--space-16) 0;
+  padding: var(--space-16) 32px;
 }
 
 /* ── GRID ── */
