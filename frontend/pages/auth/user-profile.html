@@ -490,10 +490,8 @@
         document.querySelectorAll('[data-key]').forEach(input => {
           updates[input.dataset.key] = input.value;
         });
-<<<<<<< HEAD
         localStorage.setItem('rupi_user', JSON.stringify(storedUser));
-=======
->>>>>>> 6a68bb8 (Resolve merge conflicts in user-profile.html: remove duplicate declarations and fix broken fetch in toggleEdit)
+
         const currentToken = getValidStoredToken();
         if (!currentToken) {
           redirectToLogin('Your session has expired. Please sign in again.');
@@ -511,10 +509,6 @@
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 432735a (tax agent complete)
           body: JSON.stringify(storedUser)
         }).then((res) => {
           if (res.status === 401) {
@@ -537,11 +531,7 @@
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-<<<<<<< HEAD
-=======
->>>>>>> 6a68bb8 (Resolve merge conflicts in user-profile.html: remove duplicate declarations and fix broken fetch in toggleEdit)
-=======
->>>>>>> 432735a (tax agent complete)
+
           body: JSON.stringify(payload)
         })
           .then(async (res) => {

@@ -86,6 +86,34 @@
       border-color: rgba(61, 220, 82, 0.5);
     }
 
+    }
+
+    .sidebar-header {
+      padding: var(--space-4) var(--space-4) var(--space-3);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: var(--space-3);
+    }
+
+    .new-chat-btn {
+      width: calc(100% - 2 * var(--space-4));
+      margin: 0 var(--space-4);
+      padding: 10px;
+      background: rgba(61, 220, 82, 0.1);
+      border: 1px solid rgba(61, 220, 82, 0.3);
+      border-radius: var(--radius-md);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-display);
+    }
+
+    .new-chat-btn:hover {
+      background: rgba(61, 220, 82, 0.18);
+      border-color: rgba(61, 220, 82, 0.5);
+    }
+
     .chat-history-list {
       padding: 0 var(--space-4);
       flex: 1;
@@ -158,6 +186,37 @@
       color: var(--text-primary);
       margin-bottom: var(--space-3);
       font-family: var(--font-display);
+    }
+
+    .chat-welcome-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-6);
+      max-width: 480px;
+    }
+
+    .sample-queries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-3);
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .sample-query-btn {
+      padding: var(--space-4);
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+
     }
 
     .chat-welcome-desc {
@@ -463,6 +522,55 @@
           <input type="text" id="taxInput" placeholder="Ask me anything about taxes, deductions, or ITR filing..." />
           <button class="chat-send-btn" onclick="sendTaxQuery()">Send</button>
         </div>
+
+        <!-- Chat 2 -->
+        <div class="chat-history-item" data-chat-id="chat2" onclick="loadChat(this, 'chat2')" data-date="Yesterday">
+          <strong>Tax Regime Comparison</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Yesterday</div>
+        </div>
+
+        <!-- Chat 3 -->
+        <div class="chat-history-item" data-chat-id="chat3" onclick="loadChat(this, 'chat3')" data-date="2 days ago">
+          <strong>ITR Filing Guide</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">2 days ago</div>
+        </div>
+
+        <!-- Chat 4 -->
+        <div class="chat-history-item" data-chat-id="chat4" onclick="loadChat(this, 'chat4')" data-date="1 week ago">
+          <strong>HRA & Standard Deduction</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">1 week ago</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main-area">
+      <!-- Welcome Section (shown initially) -->
+      <div class="chat-welcome-section" id="welcomeSection">
+        <div class="chat-welcome-icon">💰</div>
+        <h2 class="chat-welcome-title">Ask Your Tax Agent</h2>
+        <p class="chat-welcome-desc">Get instant answers about deductions, tax regimes, ITR filing, and optimize your tax strategy</p>
+        
+        <div class="sample-queries">
+          <button class="sample-query-btn" onclick="sendSampleQuery('How much can I save with 80C deduction?')">
+            How much can I save with 80C deduction?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('Which tax regime suits my income better?')">
+            Which tax regime suits my income?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What is the standard deduction for salaried employees?')">
+            What is the standard deduction?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('How do I file my ITR online?')">
+            How do I file my ITR online?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What deductions can a self-employed professional claim?')">
+            Deductions for self-employed?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What is HRA exemption and how is it calculated?')">
+            HRA exemption calculation
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -506,7 +614,6 @@
       chat3: { title: 'ITR Filing Guide' },
       chat4: { title: 'HRA & Standard Deduction' }
     };
-<<<<<<< HEAD
       <!-- UPLOAD DOCUMENTS — Below Ask Tax Agent -->
       <div style="max-width:680px;margin:0 auto var(--space-6);">
         <div class="panel">
@@ -540,9 +647,168 @@
             </div>
           </div>
         </div>
+      <!-- Messages Section (shown after first message) -->
+      <div class="chat-messages-section" id="messagesSection" style="display:none;">
+        <div class="chat-messages-container" id="chatMessages"></div>
       </div>
-=======
->>>>>>> 71b635e (UI polish and profile integration: removed floating dollar signs, updated navbar branding, integrated user profile with backend database)
+
+    // Initialize chat history in localStorage on page load
+    function initializeChatHistory() {
+      let chatHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      
+      // Add or update Tax Agent chats from hardcoded data
+      Object.entries(chatHistories).forEach(([chatId, messages]) => {
+        const metadata = chatMetadata[chatId];
+        const existingIndex = chatHistory.findIndex(c => c.id === chatId);
+        const preview = messages[0]?.content?.substring(0, 60) + '...' || 'Tax consultation';
+        
+        const chatItem = {
+          id: chatId,
+          agent: 'tax',
+          title: metadata.title,
+          preview: preview,
+          time: getRelativeTime(chatId),
+          messages: messages
+        };
+        
+        if (existingIndex >= 0) {
+          chatHistory[existingIndex] = chatItem;
+        } else {
+          chatHistory.push(chatItem);
+        }
+      });
+      
+      localStorage.setItem('rupi_chat_history', JSON.stringify(chatHistory));
+    }
+
+    // Get relative time for chat (for demo purposes)
+    function getRelativeTime(chatId) {
+      const timeMap = {
+        chat1: 'Today',
+        chat2: 'Yesterday',
+        chat3: '2 days ago',
+        chat4: '1 week ago'
+      };
+      return timeMap[chatId] || 'Today';
+    }
+
+    function getConversation(chatId) {
+      const storedHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      const storedChat = storedHistory.find((item) => item.id === chatId);
+      if (storedChat && Array.isArray(storedChat.messages) && storedChat.messages.length) {
+        return storedChat.messages;
+      }
+      return chatHistories[chatId] || [];
+    }
+
+    // Update chat history with new messages
+    function updateChatHistoryWithNewMessage(userMessage, agentResponse) {
+      let chatHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      
+      // Create or update live chat (for new messages)
+      const firstChat = chatHistory.find((c) => c.id === 'live-chat') || {
+        id: 'live-chat',
+        agent: 'tax',
+        title: 'Ongoing Conversation',
+        preview: userMessage.substring(0, 60) + '...',
+        time: 'Today',
+        messages: []
+      };
+      
+      firstChat.messages = firstChat.messages || [];
+      firstChat.messages.push({ role: 'user', content: userMessage });
+      firstChat.messages.push({ role: 'agent', content: agentResponse });
+      firstChat.preview = userMessage.substring(0, 60) + '...';
+      firstChat.time = 'Today';
+      
+      if (!chatHistory.some(c => c.id === 'live-chat')) {
+        chatHistory.unshift(firstChat);
+      } else {
+        const idx = chatHistory.findIndex(c => c.id === 'live-chat');
+        chatHistory[idx] = firstChat;
+      }
+      
+      localStorage.setItem('rupi_chat_history', JSON.stringify(chatHistory));
+    }
+
+    // Initialize on page load
+    initializeChatHistory();
+
+    // Check if we need to load a specific chat from User Profile
+    function loadChatOnPageLoad() {
+      const chatIdToLoad = sessionStorage.getItem('rupi_load_chat_id');
+      if (chatIdToLoad) {
+        sessionStorage.removeItem('rupi_load_chat_id');
+        
+        setTimeout(() => {
+          // Find the chat element by data-chat-id attribute
+          const chatElement = document.querySelector(`[data-chat-id="${chatIdToLoad}"]`);
+          if (chatElement) {
+            loadChat(chatElement, chatIdToLoad);
+          } else {
+            // Fallback: load from storage or default data even if no sidebar entry exists
+            document.querySelectorAll('.chat-history-item').forEach(item => item.classList.remove('active'));
+            const targetElement = Array.from(document.querySelectorAll('.chat-history-item')).find(el => el.getAttribute('data-chat-id') === chatIdToLoad);
+            if (targetElement) {
+              loadChat(targetElement, chatIdToLoad);
+            } else {
+              const mockElement = { classList: { add: () => {}, remove: () => {} } };
+              loadChat(mockElement, chatIdToLoad);
+            }
+          }
+        }, 50);
+      }
+    }
+
+      <!-- Input Area -->
+      <div class="chat-input-section">
+        <div class="chat-input-wrapper">
+          <input type="text" id="taxInput" placeholder="Ask me anything about taxes, deductions, or ITR filing..." />
+          <button class="chat-send-btn" onclick="sendTaxQuery()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chatHistory = [];
+    const taxInput = document.getElementById('taxInput');
+
+    // Pre-loaded chat history data
+    const chatHistories = {
+      chat1: [
+        { role: 'user', content: 'How much can I save with 80C deduction?' },
+        { role: 'agent', content: 'Under Section 80C, you can claim deductions up to ₹1,50,000 per financial year. This includes investments in:\n• Life Insurance Premiums\n• PPF (Public Provident Fund)\n• ELSS Mutual Funds\n• Fixed Deposits\n• Children\'s tuition fees\n• Home Loan Principal' },
+        { role: 'user', content: 'If my income is 8 lakhs, what\'s the tax saving?' },
+        { role: 'agent', content: 'Great question! If your income is ₹8 lakhs and you use the full ₹1,50,000 deduction under 80C:\n\nUnder New Regime: ~₹17,500 tax savings\nUnder Old Regime: ~₹45,000 tax savings (30% tax slab)\n\nOld regime is more beneficial if you have deductions. Let me know if you\'d like a detailed comparison!' }
+      ],
+      chat2: [
+        { role: 'user', content: 'Which tax regime suits my income better?' },
+        { role: 'agent', content: 'To recommend the best regime, I need some information:\n1. Your annual income\n2. Home Loan (yes/no)\n3. Investment amount in 80C\n4. HRA receipt amount\n5. Medical insurance premium\n\nGenerally: Old Regime is better if you have high deductions. New Regime is better if deductions are low.' },
+        { role: 'user', content: 'My income is ₹6L, no home loan, 50k in PPF, 20k HRA, 5k medical' },
+        { role: 'agent', content: 'Based on your profile:\n\nOld Regime Tax: ~₹48,100 (with 50C + HRA + medical deductions)\nNew Regime Tax: ~₹52,500\n\n✓ Old Regime Saves: ₹4,400 annually\n\nRecommendation: Choose Old Regime for better tax efficiency!' }
+      ],
+      chat3: [
+        { role: 'user', content: 'How do I file my ITR online?' },
+        { role: 'agent', content: 'ITR filing process on Income Tax portal:\n\n1. Visit www.incometaxindiaefiling.gov.in\n2. Register/Login with PAN\n3. Select appropriate ITR form (ITR-1 for salaried)\n4. Enter income details\n5. Claim deductions (80C, HRA, etc.)\n6. Submit & Generate XML\n7. E-verify within 30 days\n\nDeadline: July 31, 2024 (AY 2024-25)' },
+        { role: 'user', content: 'What if my employer already filed Form 24Q?' },
+        { role: 'agent', content: 'Form 24Q contains your employer\'s TDS details. The portal will auto-fetch this data when you login.\n\nKey point: Your ITR must match the 24Q amount. If there\'s a mismatch:\n✓ Re-verify computation\n✓ Check additional income sources\n✓ Ensure all deductions are claimed\n\nThe system will alert you of discrepancies.' }
+      ],
+      chat4: [
+        { role: 'user', content: 'What\'s the difference between HRA and Standard Deduction?' },
+        { role: 'agent', content: 'Great question! Key differences:\n\n🏠 HRA Exemption:\n• Only available under Old Regime\n• For salaried employees who pay rent\n• Minimum of: Salary/10, Rent-10%, or ₹0\n• Requires rent agreement & proof\n• Max ₹5L+ depending on city\n\n📋 Standard Deduction:\n• Available to ALL salaried employees\n• ₹50,000 (flat deduction)\n• No proof required\n• Available in both regimes' },
+        { role: 'user', content: 'I pay 15k rent, should I claim HRA or Standard?' },
+        { role: 'agent', content: 'Your HRA exemption calculation:\nMin(Salary/10, Rent-10%, Actual Rent)\n\nIf salary is ₹6L: Min(₹60k, ₹1.35L, ₹1.8L) = ₹60k\n\n💡 Recommendation:\nOld Regime: Claim ₹60k HRA + other deductions\nNew Regime: Standard ₹50k deduction\n\nOld regime gives you ₹10k more benefit. Choose Old Regime!' }
+      ]
+    };
+
+    // Chat metadata for localStorage
+    const chatMetadata = {
+      chat1: { title: '80C Deduction Savings' },
+      chat2: { title: 'Tax Regime Comparison' },
+      chat3: { title: 'ITR Filing Guide' },
+      chat4: { title: 'HRA & Standard Deduction' }
+    };
 
     // Initialize chat history in localStorage on page load
     function initializeChatHistory() {
