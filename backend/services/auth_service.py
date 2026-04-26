@@ -100,7 +100,7 @@ class AuthService:
     def delete_user(user_id: str, db: Session) -> tuple[bool, Optional[str]]:
         """Delete a user and related data."""
         try:
-            from models.database import ChatMessage, ChatSession, DocumentUpload, UserCalculations
+            from models.database import ChatMessage, ChatSession, DocumentUpload, Form16Extraction, UserCalculations
 
             user = db.query(User).filter_by(user_id=user_id).first()
             if not user:
@@ -111,6 +111,7 @@ class AuthService:
             if session_ids:
                 db.query(ChatMessage).filter(ChatMessage.session_id.in_(session_ids)).delete(synchronize_session=False)
             db.query(ChatSession).filter_by(user_id=user_id).delete(synchronize_session=False)
+            db.query(Form16Extraction).filter_by(user_id=user_id).delete(synchronize_session=False)
             db.query(DocumentUpload).filter_by(user_id=user_id).delete(synchronize_session=False)
             db.query(UserCalculations).filter_by(user_id=user_id).delete(synchronize_session=False)
             db.delete(user)

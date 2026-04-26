@@ -65,3 +65,6 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# PDF templates
+ITR_template.pdf

@@ -692,15 +692,19 @@
           continue;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
-
         try {
-          const res = await fetch(apiUrl('/api/user/documents'), {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
-          });
+          const sendUpload = async (confirmOverride = false) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (confirmOverride) formData.append('confirm_override', 'true');
+            return fetch(apiUrl('/api/user/documents'), {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
+              body: formData
+            });
+          };
+
+          let res = await sendUpload(false);
 
           if (res.status === 401) {
             redirectToLogin('Your session has expired. Please sign in again.');
@@ -715,8 +719,28 @@
             payload = { detail: raw };
           }
 
+          if (res.status === 409) {
+            const detail = payload.detail || {};
+            const confirmMessage = detail.message || 'A Form 16 already exists. Do you want to replace it?';
+            const shouldOverride = window.confirm(confirmMessage);
+            if (!shouldOverride) {
+              throw new Error('Upload cancelled. Existing Form 16 kept.');
+            }
+
+            res = await sendUpload(true);
+            const overrideRaw = await res.text();
+            try {
+              payload = overrideRaw ? JSON.parse(overrideRaw) : {};
+            } catch (_) {
+              payload = { detail: overrideRaw };
+            }
+          }
+
           if (!res.ok) {
-            throw new Error(payload.detail || 'Upload failed');
+            const detailMessage = typeof payload.detail === 'string'
+              ? payload.detail
+              : (payload.detail?.message || 'Upload failed');
+            throw new Error(detailMessage);
           }
 
           docFiles.unshift(mapApiDocument(payload));

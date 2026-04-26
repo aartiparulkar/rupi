@@ -2,6 +2,7 @@
 
 import logging
 from contextlib import asynccontextmanager
+from decimal import Decimal
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Header
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.dependencies import get_current_user_from_header
 from app.schemas import ChatMessageRequest, CreateChatSessionRequest, UpdateProfileRequest
-from models.database import User, get_db, init_db
+from models.database import Form16Extraction, User, get_db, init_db
 from routes.admin import router as admin_router
 from routes.auth import router as auth_router
 from routes.calculations import router as calculations_router
@@ -191,7 +192,11 @@ async def create_chat_session(
             )
             ai_response = ChatService.generate_ai_response(
                 user_message=request.initial_message,
-                session_context={"agent_type": requested_agent, "user_id": current_user.user_id},
+                session_context={
+                    "agent_type": requested_agent,
+                    "user_id": current_user.user_id,
+                    "session_id": session.session_id,
+                },
                 db=db,
             )
             ChatService.append_message(
@@ -428,10 +433,34 @@ async def tax_agent_chat(
                     elif user:
                         is_registered = True
 
+                    latest_extraction = (
+                        db.query(Form16Extraction)
+                        .filter(Form16Extraction.user_id == user_id)
+                        .order_by(Form16Extraction.created_at.desc())
+                        .first()
+                    )
+                    if latest_extraction:
+                        extracted_tax_profile = {"form16_provided": True}
+                        for column in latest_extraction.__table__.columns:
+                            key = column.name
+                            value = getattr(latest_extraction, key, None)
+                            if value is None:
+                                continue
+                            extracted_tax_profile[key] = float(value) if isinstance(value, Decimal) else value
+                        profile = {**extracted_tax_profile, **profile}
+
         context["profile"] = profile
         context["is_registered"] = is_registered
         context["db"] = db
-        return ChatService.generate_tax_assistant_response(message=message, context=context)
+        response = ChatService.generate_tax_assistant_response(message=message, context=context)
+
+        # Disable interactive controls for tax chat responses.
+        response["controls"] = []
+        response_context = response.get("context")
+        if isinstance(response_context, dict):
+            response_context["pending"] = None
+
+        return response
     except Exception as e:
         logger.error(f"Error in tax-agent chat: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process tax chat") from e

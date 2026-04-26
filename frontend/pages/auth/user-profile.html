@@ -379,6 +379,8 @@
     // ── Auth guard ──
     const token = getValidStoredToken();
     const storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
+    const token = localStorage.getItem('rupi_token');
+    let storedUser = JSON.parse(localStorage.getItem('rupi_user') || '{}');
     const API_BASE = window.RUPI_API_BASE || 'http://localhost:8000';
     const apiUrl = (path) => `${API_BASE}${path}`;
     if (!token && !storedUser.email) {
@@ -488,6 +490,8 @@
         document.querySelectorAll('[data-key]').forEach(input => {
           updates[input.dataset.key] = input.value;
         });
+        localStorage.setItem('rupi_user', JSON.stringify(storedUser));
+
         const currentToken = getValidStoredToken();
         if (!currentToken) {
           redirectToLogin('Your session has expired. Please sign in again.');
@@ -505,6 +509,29 @@
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+          body: JSON.stringify(storedUser)
+        }).then((res) => {
+          if (res.status === 401) {
+            redirectToLogin('Your session has expired. Please sign in again.');
+          }
+        }).catch(() => {}); // silently fail in dev
+        editMode = false;
+        btn.textContent = 'Edit Profile';
+        btn.className = 'profile-edit-btn';
+        renderProfileGrid();
+        showToast('Profile saved successfully ✓', 'success');
+
+        const payload = {
+          ...updates,
+          firstName: updates.firstName || storedUser.firstName,
+          lastName: updates.lastName || storedUser.lastName,
+          profileComplete: true,
+        };
+
+        fetch(apiUrl('/api/user/profile'), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+
           body: JSON.stringify(payload)
         })
           .then(async (res) => {
@@ -752,9 +779,6 @@
         docFiles.unshift(tempDoc);
         renderDocs();
 
-        const formData = new FormData();
-        formData.append('file', file);
-
         const stageTimers = [
           setTimeout(() => {
             tempDoc.status = 'processing';
@@ -774,11 +798,18 @@
         ];
 
         try {
-          const res = await fetch(apiUrl('/api/user/documents'), {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${currentToken}` },
-            body: formData
-          });
+          const sendUpload = async (confirmOverride = false) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (confirmOverride) formData.append('confirm_override', 'true');
+            return fetch(apiUrl('/api/user/documents'), {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${currentToken}` },
+              body: formData
+            });
+          };
+
+          let res = await sendUpload(false);
 
           if (res.status === 401) {
             stageTimers.forEach(clearTimeout);
@@ -793,8 +824,28 @@
           } catch (_) {
             payload = { detail: raw };
           }
+
+          if (res.status === 409) {
+            const detail = payload.detail || {};
+            const confirmMessage = detail.message || 'A Form 16 already exists. Do you want to replace it?';
+            const shouldOverride = window.confirm(confirmMessage);
+            if (!shouldOverride) {
+              throw new Error('Upload cancelled. Existing Form 16 kept.');
+            }
+
+            res = await sendUpload(true);
+            const overrideRaw = await res.text();
+            try {
+              payload = overrideRaw ? JSON.parse(overrideRaw) : {};
+            } catch (_) {
+              payload = { detail: overrideRaw };
+            }
+          }
           if (!res.ok) {
-            throw new Error(payload.detail || 'Upload failed');
+            const detailMessage = typeof payload.detail === 'string'
+              ? payload.detail
+              : (payload.detail?.message || 'Upload failed');
+            throw new Error(detailMessage);
           }
 
           stageTimers.forEach(clearTimeout);

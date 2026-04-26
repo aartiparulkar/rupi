@@ -214,6 +214,9 @@ body {
   width: 100%;
   margin: 0;
   padding: 0 32px;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 4px;
 }
 
 .section {
