@@ -509,6 +509,7 @@
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+
           body: JSON.stringify(storedUser)
         }).then((res) => {
           if (res.status === 401) {

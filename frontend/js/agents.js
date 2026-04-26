@@ -948,11 +948,14 @@ function animateRiskScore() {
 // ── Agent Chat ─────────────────────────────────────────────────
 function initAgentChat(containerId, agentType) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  const fallbackRoot = agentType === 'tax' ? document.querySelector('.chat-main-area') : null;
+  const root = container || fallbackRoot;
+  if (!root) return;
 
-  const chatMessages = container.querySelector('.chat-container');
-  const chatInput    = container.querySelector('.chat-input');
-  const sendBtn      = container.querySelector('.chat-send-btn');
+  const chatMessages = root.querySelector('.chat-container') || document.getElementById('chatMessages');
+  const chatInput    = root.querySelector('.chat-input') || document.getElementById('taxInput');
+  const sendBtn      = root.querySelector('.chat-send-btn');
+  if (!chatMessages || !chatInput) return;
   const API_BASE = 'http://127.0.0.1:8000';
   const taxState = TAX_CHAT_SHARED_STATE;
   const sessionAgentType = agentType === 'investment' ? 'invest' : agentType;
@@ -1136,6 +1139,15 @@ function initAgentChat(containerId, agentType) {
     const text = chatInput?.value.trim();
     if (!text) return;
 
+    if (agentType === 'tax') {
+      const welcomeSection = document.getElementById('welcomeSection');
+      const messagesSection = document.getElementById('messagesSection');
+      if (welcomeSection && messagesSection) {
+        welcomeSection.style.display = 'none';
+        messagesSection.style.display = 'flex';
+      }
+    }
+
     appendMessage(chatMessages, text, 'user');
     chatInput.value = '';
 
@@ -1165,7 +1177,32 @@ function initAgentChat(containerId, agentType) {
       });
   };
 
-  if (sendBtn) sendBtn.addEventListener('click', send);
+  const hasInlineOnclick = !!sendBtn?.getAttribute('onclick');
+  if (sendBtn && !(agentType === 'tax' && hasInlineOnclick)) {
+    sendBtn.addEventListener('click', send);
+  }
+
+  if (agentType === 'tax') {
+    // The updated tax page uses inline hooks in the new UI shell.
+    window.sendTaxQuery = send;
+    window.sendSampleQuery = (query) => {
+      if (!query) return;
+      chatInput.value = String(query);
+      send();
+    };
+    window.newChat = () => {
+      chatSessionId = null;
+      chatInput.value = '';
+      if (chatMessages) chatMessages.innerHTML = '';
+      const welcomeSection = document.getElementById('welcomeSection');
+      const messagesSection = document.getElementById('messagesSection');
+      if (welcomeSection && messagesSection) {
+        welcomeSection.style.display = 'flex';
+        messagesSection.style.display = 'none';
+      }
+    };
+  }
+
   if (chatInput) {
     chatInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
@@ -1175,6 +1212,21 @@ function initAgentChat(containerId, agentType) {
 
 function appendMessage(container, text, role) {
   if (!container) return;
+
+  if (container.id === 'chatMessages') {
+    const el = document.createElement('div');
+    el.className = `chat-message-wrapper ${role}`;
+    el.innerHTML = `<div class="chat-bubble">${text}</div>`;
+    container.appendChild(el);
+    const scrollHost = document.querySelector('.chat-messages-section');
+    if (scrollHost) {
+      scrollHost.scrollTop = scrollHost.scrollHeight;
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+    return;
+  }
+
   const el = document.createElement('div');
   el.className = `chat-message ${role}`;
   el.innerHTML = `
