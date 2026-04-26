@@ -506,6 +506,40 @@
       chat3: { title: 'ITR Filing Guide' },
       chat4: { title: 'HRA & Standard Deduction' }
     };
+      <!-- UPLOAD DOCUMENTS — Below Ask Tax Agent -->
+      <div style="max-width:680px;margin:0 auto var(--space-6);">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="icon-wrap" style="width:32px;height:32px;font-size:1rem;background:var(--accent-muted);color:var(--accent);">&#128279;</span>
+              Upload Documents
+            </div>
+            <span class="badge badge-green">Blockchain Secured</span>
+          </div>
+          <div class="panel-body">
+            <div class="file-upload-wrapper">
+              <div class="file-drop-zone" id="form16-upload" data-api-upload="true">
+                <input type="file" accept=".pdf,.jpg,.png" multiple style="display:none;" />
+                <span class="file-drop-icon">&#128196;</span>
+                <div class="file-drop-title">Upload Form 16 / Investment Proofs</div>
+                <div class="file-drop-sub">Drag &amp; drop or click to browse &mdash; PDF, JPG, PNG supported</div>
+                <div style="margin-top:var(--space-3);">
+                  <span class="badge badge-green" style="font-size:0.72rem;">
+                    <span class="icon-wrap-green" style="width:14px;height:14px;font-size:0.6rem;display:inline-flex;">&#128279;</span>
+                    All uploads are blockchain-notarized
+                  </span>
+                </div>
+              </div>
+              <div class="file-list" id="form16-file-list"></div>
+              <div style="display:flex;justify-content:flex-end;margin-top:var(--space-4);">
+                <button id="download-itr-workbook" class="btn btn-primary btn-sm" style="background:var(--tax-color);color:#2a1a00;border-radius:var(--radius-full);padding:10px 16px;">
+                  Download Filled ITR Workbook
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
     // Initialize chat history in localStorage on page load
     function initializeChatHistory() {

@@ -124,6 +124,7 @@
             "section_87a": {
               "description": "Rebate on tax for salaried individuals",
               "amount": null,
+              "threshold": 500000,
               "condition": "Income up to ₹5 lakhs"
             }
           }
@@ -249,6 +250,7 @@
             "section_87a": {
               "description": "Rebate on tax for salaried individuals",
               "amount": null,
+              "threshold": 500000,
               "condition": "Income up to ₹5 lakhs"
             }
           }
@@ -346,6 +348,7 @@
             "section_87a": {
               "description": "Rebate on tax for salaried individuals",
               "amount": 12500,
+              "threshold": 500000,
               "condition": "Income up to ₹5 lakhs"
             }
           }
@@ -403,6 +406,7 @@
             "section_87a": {
               "description": "Rebate on tax for salaried individuals",
               "amount": 60000,
+              "threshold": 1200000,
               "condition": "Income up to ₹12 lakhs"
             }
           }

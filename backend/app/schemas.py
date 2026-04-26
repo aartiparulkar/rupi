@@ -67,3 +67,18 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TaxCalculationFromExtractionRequest(BaseModel):
+    """Calculate tax from Form16Extraction data"""
+    
+    extraction_id: Optional[str] = None  # If provided, fetch from DB; otherwise use latest
+    regime: Optional[str] = "both"  # "old", "new", or "both"
+    fiscal_year: Optional[str] = None  # Override extraction's financial_year
+
+
+class ValidateExtractionRequest(BaseModel):
+    """Validate extracted tax values against calculated"""
+    
+    extraction_id: Optional[str] = None  # If provided, fetch from DB; otherwise use latest  
+    regime: Optional[str] = "old"  # "old" or "new"

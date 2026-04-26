@@ -2,20 +2,15 @@
 
 import logging
 import uuid
-import re
 import json
-from copy import deepcopy
-from datetime import datetime
-from pathlib import Path
+import re
+from datetime import datetime, date
 from typing import Optional, List, Dict, Tuple, Any
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-import PyPDF2
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.config import settings, government_sources
-from models.database import ChatSession, ChatMessage, TaxRules
+from models.database import ChatSession, ChatMessage, Form16Extraction
 from services.tax_calculator import TaxCalculator
 from services.tax_slab_loader import TaxSlabLoader
 
@@ -25,7 +20,7 @@ logger = logging.getLogger(__name__)
 class ChatService:
     """Service for managing chat sessions with AI agents"""
 
-    _tax_interactive_chain = None
+    _tax_reply_llm = None
 
     TAX_KEYWORDS = {
         "tax", "itr", "deduction", "80c", "80d", "hra", "regime", "income", "salary",
@@ -33,240 +28,203 @@ class ChatService:
         "exemption", "tds", "advance tax", "return",
     }
 
-    YES_TOKENS = {"yes", "y", "haan", "ha", "sure", "ok", "okay"}
-    NO_TOKENS = {"no", "n", "nah", "nope"}
+    EXPLANATION_KEYWORDS = {
+        "how did", "how do", "calculated", "calculate", "breakdown", "explain",
+        "working", "logic", "why",
+    }
 
-    CONTROL_LIBRARY: Dict[str, Dict[str, Any]] = {
-        "gross_income_slider": {
-            "type": "slider",
-            "key": "gross_income",
-            "label": "Gross annual income (INR)",
-            "min": 300000,
-            "max": 5000000,
-            "step": 50000,
-            "default": 1200000,
-        },
-        "has_hra_buttons": {
-            "type": "buttons",
-            "key": "has_hra",
-            "label": "Do you claim HRA?",
-            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-        },
-        "has_80g_buttons": {
-            "type": "buttons",
-            "key": "has_80g",
-            "label": "Any donation deductions under 80G?",
-            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-        },
-        "has_life_insurance_buttons": {
-            "type": "buttons",
-            "key": "has_life_insurance",
-            "label": "Life insurance premium under Section 80C?",
-            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-        },
-        "has_other_80c_buttons": {
-            "type": "buttons",
-            "key": "has_other_80c",
-            "label": "Any other Section 80C investments?",
-            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-        },
-        "form16_uploaded_buttons": {
-            "type": "buttons",
-            "key": "form16_provided",
-            "label": "Form 16 uploaded?",
-            "options": [{"label": "Yes, uploaded", "value": "form16_yes"}, {"label": "Not yet", "value": "form16_no"}],
-        },
-        "upload_form16_now_buttons": {
-            "type": "buttons",
-            "key": "upload_form16_now",
-            "label": "Upload Form 16 now?",
-            "options": [{"label": "Yes", "value": "upload_form16_yes"}, {"label": "No", "value": "upload_form16_no"}],
-        },
-        "form16_upload_progress_buttons": {
-            "type": "buttons",
-            "key": "form16_upload_progress",
-            "label": "After uploading, choose:",
-            "options": [{"label": "Uploaded", "value": "form16_done"}, {"label": "Skip for now", "value": "form16_skip"}],
-        },
-        "hra_exemption_slider": {
-            "type": "slider",
-            "key": "hra_exemption",
-            "label": "Annual HRA exemption (INR)",
-            "min": 0,
-            "max": 600000,
-            "step": 10000,
-            "default": 120000,
-        },
-        "donations_80g_slider": {
-            "type": "slider",
-            "key": "donations_80g",
-            "label": "Total donations under 80G (INR)",
-            "min": 0,
-            "max": 300000,
-            "step": 5000,
-            "default": 10000,
-        },
-        "life_insurance_slider": {
-            "type": "slider",
-            "key": "life_insurance_premium",
-            "label": "Annual life insurance premium (INR)",
-            "min": 0,
-            "max": 150000,
-            "step": 5000,
-            "default": 30000,
-        },
-        "other_80c_slider": {
-            "type": "slider",
-            "key": "other_80c",
-            "label": "Additional 80C amount (INR)",
-            "min": 0,
-            "max": 150000,
-            "step": 5000,
-            "default": 20000,
-        },
-        "deductions_80c_slider": {
-            "type": "slider",
-            "key": "deductions_80c",
-            "label": "Section 80C claimed amount (INR)",
-            "min": 0,
-            "max": 150000,
-            "step": 5000,
-            "default": 50000,
-        },
+    SAVING_ADVICE_KEYWORDS = {
+        "save tax", "reduce tax", "where can i save", "how can i save",
+        "tax saving", "save more", "deduction options",
     }
 
     @staticmethod
-    def _control(name: str, **overrides: Any) -> Dict[str, Any]:
-        base = deepcopy(ChatService.CONTROL_LIBRARY.get(name, {}))
-        if not base:
-            return {}
-        base.update(overrides)
-        return base
+    def _make_json_safe(value: Any) -> Any:
+        """Convert nested state objects into JSON-serializable values."""
+        if isinstance(value, dict):
+            return {k: ChatService._make_json_safe(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [ChatService._make_json_safe(v) for v in value]
+        if isinstance(value, tuple):
+            return [ChatService._make_json_safe(v) for v in value]
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        if hasattr(value, "as_tuple"):
+            return float(value)
+        return value
+
 
     @staticmethod
-    def _controls(*names: str) -> List[Dict[str, Any]]:
-        return [c for c in (ChatService._control(name) for name in names) if c]
-
-    @staticmethod
-    def _load_json_file(path: Path) -> Dict[str, Any]:
-        try:
-            if path.exists():
-                with open(path, "r", encoding="utf-8") as handle:
-                    return json.load(handle)
-        except Exception:
-            logger.debug("Unable to load JSON file: %s", path, exc_info=True)
-        return {}
-
-    @staticmethod
-    def _latest_memo_excerpt(max_chars: int = 3500) -> str:
-        """Extract a short excerpt from the latest memo PDF available on disk."""
-        try:
-            tax_docs_root = Path(__file__).resolve().parent.parent / "tax-docs"
-            candidates = sorted(tax_docs_root.glob("**/memo_*.pdf"), key=lambda path: path.stat().st_mtime, reverse=True)
-            if not candidates:
-                return ""
-
-            reader = PyPDF2.PdfReader(str(candidates[0]))
-            pages = []
-            for page in reader.pages[:2]:
-                try:
-                    pages.append(page.extract_text() or "")
-                except Exception:
-                    continue
-            excerpt = "\n".join(page for page in pages if page).strip()
-            return excerpt[:max_chars]
-        except Exception:
-            logger.debug("Unable to extract memo excerpt", exc_info=True)
-            return ""
-
-    @staticmethod
-    def _db_rules_excerpt(db: Optional[Session], fiscal_year: Optional[str], limit: int = 8) -> str:
-        if db is None:
-            return ""
-        try:
-            query = db.query(TaxRules).order_by(TaxRules.created_at.desc())
-            if fiscal_year:
-                query = query.filter(TaxRules.fiscal_year == fiscal_year)
-            rules = query.limit(limit).all()
-            if not rules:
-                return ""
-
-            lines = []
-            for rule in rules:
-                parts = [
-                    f"{rule.fiscal_year or 'unknown fiscal year'}",
-                    f"{rule.category or 'general'}",
-                    f"{rule.regime or 'both'}",
-                    (rule.description or "").strip(),
-                ]
-                if rule.amount is not None:
-                    parts.append(f"amount={float(rule.amount):,.0f}")
-                if rule.percentage is not None:
-                    parts.append(f"rate={float(rule.percentage)}%")
-                lines.append(" | ".join(part for part in parts if part))
-            return "\n".join(lines)
-        except Exception:
-            logger.debug("Unable to read DB tax rules", exc_info=True)
-            return ""
-
-    @staticmethod
-    def _build_tax_knowledge_context(profile: Dict[str, Any], db: Optional[Session]) -> str:
+    def _build_tax_knowledge_context(profile: Dict[str, Any]) -> str:
         fiscal_year = profile.get("fiscal_year") or "2026-27"
-        config_dir = Path(__file__).resolve().parent.parent / "config"
-        slabs = ChatService._load_json_file(config_dir / "tax_slabs.json") or TaxSlabLoader.load_slabs() or {}
+        slabs = TaxSlabLoader.load_slabs() or {}
         tax_slab_data = slabs.get("fiscal_years", {}).get(fiscal_year) or {}
-        government_sources_block = ChatService._load_json_file(config_dir / "government_sources.json") or government_sources or {}
-        memo_excerpt = ChatService._latest_memo_excerpt()
-        db_rules = ChatService._db_rules_excerpt(db, fiscal_year)
+        government_sources_block = government_sources or {}
 
         knowledge = {
             "focus": "strictly salaried_individuals_only",
             "fiscal_year": fiscal_year,
             "tax_slabs": tax_slab_data,
             "government_sources": government_sources_block,
-            "memo_excerpt": memo_excerpt,
-            "database_rules_excerpt": db_rules,
         }
         return json.dumps(knowledge, ensure_ascii=False, indent=2)
 
     @staticmethod
-    def _get_tax_interactive_chain():
-        """LangChain pipeline that can suggest structured interactive controls."""
-        if ChatService._tax_interactive_chain is None:
-            parser = JsonOutputParser()
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        "You are RuPi Tax Agent for Indian personal income tax for strictly salaried individuals. "
-                        "Use the provided tax knowledge context and answer only from those sources when possible. "
-                        "If the question is outside salaried personal income tax, politely deny it and redirect back to salaried-tax topics. "
-                        "Be warm, patient, and conversational. Start with a brief acknowledgement when appropriate. "
-                        "Do not sound blunt, robotic, or overly terse. If missing details are needed, ask one concise follow-up at a time. "
-                        "Return JSON only. Prefer interactive controls so the user does not need to type amounts. "
-                        "Use only control keys from available_controls. "
-                        "If information is complete, return empty control_keys.",
-                    ),
-                    (
-                        "human",
-                        "{format_instructions}\n"
-                        "User query: {user_query}\n"
-                        "Known profile data: {profile_data}\n"
-                        "Recent conversation history: {conversation_history}\n"
-                        "Current pending state: {pending_state}\n"
-                        "Tax knowledge context: {tax_knowledge_context}\n"
-                        "Available control keys: {available_controls}\n"
-                        "Output schema: {{\"reply\": string, \"control_keys\": string[]}}",
-                    ),
-                ]
-            )
-            llm = ChatOpenAI(
+    def _get_tax_reply_llm():
+        if ChatService._tax_reply_llm is None:
+            ChatService._tax_reply_llm = ChatOpenAI(
                 model="gpt-4o-mini",
                 api_key=settings.openai_api_key,
                 temperature=0.2,
             )
-            ChatService._tax_interactive_chain = prompt | llm | parser
-        return ChatService._tax_interactive_chain
+        return ChatService._tax_reply_llm
+
+    @staticmethod
+    def _extract_first_number(text: str) -> Optional[float]:
+        cleaned = (text or "").replace(",", "")
+        match = re.search(r"(-?\d+(?:\.\d+)?)", cleaned)
+        if not match:
+            return None
+        try:
+            return float(match.group(1))
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _extract_pending_field_value(user_text: str, pending_field: str) -> Optional[float]:
+        numeric_value = ChatService._extract_first_number(user_text)
+        if numeric_value is not None:
+            return numeric_value
+
+        # Fallback extraction via LLM to keep follow-up parsing field-agnostic.
+        try:
+            llm = ChatService._get_tax_reply_llm()
+            prompt = (
+                "Extract a numeric value for the requested tax field from the user text. "
+                "Return strict JSON only with shape {\"value\": number|null}.\n\n"
+                f"Requested field: {pending_field}\n"
+                f"User text: {user_text}"
+            )
+            llm_response = llm.invoke(prompt)
+            content = (getattr(llm_response, "content", "") or "").strip()
+            parsed = json.loads(content)
+            value = parsed.get("value") if isinstance(parsed, dict) else None
+            if value is None:
+                return None
+            return float(value)
+        except Exception:
+            logger.debug("Could not extract pending value via LLM", exc_info=True)
+            return None
+
+    @staticmethod
+    def _is_explanation_request(query: str, has_last_calc: bool = False) -> bool:
+        lowered = (query or "").lower()
+        mentions_tax_result = any(k in lowered for k in ["tax", "regime", "savings", "save", "calculation"])
+        mentions_explain = any(k in lowered for k in ChatService.EXPLANATION_KEYWORDS) or any(
+            k in lowered for k in ["more depth", "more detail", "deeper", "break it down"]
+        )
+        if has_last_calc and mentions_explain:
+            return True
+        return mentions_tax_result and mentions_explain
+
+    @staticmethod
+    def _detect_requested_regime(query: str) -> str:
+        lowered = (query or "").lower()
+        asks_both = any(k in lowered for k in ["both", "compare", "comparison"])
+        asks_new = "new regime" in lowered
+        asks_old = "old regime" in lowered
+        if asks_both or (asks_new and asks_old):
+            return "both"
+        if asks_new:
+            return "new"
+        if asks_old:
+            return "old"
+        return "both"
+
+    @staticmethod
+    def _is_tax_saving_advice_request(query: str) -> bool:
+        lowered = (query or "").lower()
+        return any(k in lowered for k in ChatService.SAVING_ADVICE_KEYWORDS)
+
+    @staticmethod
+    def _format_tax_computation_explanation(calc_result: Dict[str, Any]) -> str:
+        old_regime = calc_result.get("old_regime") or {}
+        new_regime = calc_result.get("new_regime") or {}
+        comparison = calc_result.get("comparison") or {}
+
+        def _explain(label: str, data: Dict[str, Any]) -> str:
+            taxable = float(data.get("taxable_income") or 0)
+            tax_before_cess = float(data.get("tax_on_total_income") or 0)
+            cess = float(data.get("health_education_cess") or 0)
+            rebate = float(data.get("section_87a_rebate") or 0)
+            total = float(data.get("total_tax") or data.get("net_payable_tax") or 0)
+            std_ded = float(data.get("standard_deduction") or 0)
+            return (
+                f"{label}: taxable income ₹{taxable:,.0f}; tax before cess ₹{tax_before_cess:,.0f}; "
+                f"health and education cess ₹{cess:,.0f}; rebate ₹{rebate:,.0f}; "
+                f"standard deduction used ₹{std_ded:,.0f}; final tax ₹{total:,.0f}."
+            )
+
+        if old_regime and new_regime:
+            old_total = float(old_regime.get("total_tax") or old_regime.get("net_payable_tax") or 0)
+            new_total = float(new_regime.get("total_tax") or new_regime.get("net_payable_tax") or 0)
+            recommended = comparison.get("recommended_regime") or ("Old Regime" if old_total <= new_total else "New Regime")
+            savings = float(comparison.get("savings") or abs(old_total - new_total))
+            return (
+                "Here is the detailed computation. "
+                + _explain("Old Regime", old_regime)
+                + " "
+                + _explain("New Regime", new_regime)
+                + f" Recommended regime is {recommended} with an estimated difference of ₹{savings:,.0f}."
+            )
+
+        if new_regime:
+            return "Here is the detailed computation for New Regime. " + _explain("New Regime", new_regime)
+        if old_regime:
+            return "Here is the detailed computation for Old Regime. " + _explain("Old Regime", old_regime)
+        return "I do not have a recent calculation context to explain yet."
+
+    @staticmethod
+    def _build_tax_saving_advice(profile: Dict[str, Any]) -> str:
+        gross_income = profile.get("gross_total_income") or profile.get("gross_income") or profile.get("gross_salary")
+        if gross_income is None:
+            return (
+                "I can suggest personalized tax-saving options once I know your gross income. "
+                "Please share your gross annual income."
+            )
+
+        fiscal_year = profile.get("fiscal_year") or TaxCalculator.DEFAULT_FISCAL_YEAR
+        comparison = TaxCalculator.compare_regimes(
+            gross_income=float(gross_income),
+            deductions=0,
+            fiscal_year=fiscal_year,
+        )
+
+        comparison_data = comparison.get("comparison") or {}
+        suggested_regime = comparison_data.get("recommended_regime", "New Regime")
+        old_tax = float(comparison_data.get("old_regime_tax") or 0)
+        new_tax = float(comparison_data.get("new_regime_tax") or 0)
+        delta = abs(old_tax - new_tax)
+        return (
+            f"Based on current income, the estimated tax is ₹{old_tax:,.0f} in Old Regime and ₹{new_tax:,.0f} in New Regime. "
+            f"Current recommendation is {suggested_regime} with an estimated difference of ₹{delta:,.0f}. "
+            "To optimize old-regime savings, consider eligible deductions under 80C, 80D, 80GG, and 80TTA/80TTB as applicable."
+        )
+
+    @staticmethod
+    def _update_session_state(session_id: Optional[str], user_id: Optional[str], db: Optional[Session], new_state: Dict[str, Any]) -> None:
+        if not session_id or not user_id or db is None:
+            return
+        session = db.query(ChatSession).filter(
+            ChatSession.session_id == session_id,
+            ChatSession.user_id == user_id,
+        ).first()
+        if not session:
+            return
+        current = dict(session.session_data or {})
+        current.update(new_state)
+        session.session_data = ChatService._make_json_safe(current)
+        db.commit()
     
     @staticmethod
     def create_session(user_id: str, agent_type: str, db: Session) -> ChatSession:
@@ -419,7 +377,69 @@ class ChatService:
             agent_type = session_context.get("agent_type", "tax")
             
             if agent_type == "tax":
-                structured = ChatService.generate_tax_assistant_response(user_message, session_context)
+                user_id = session_context.get("user_id")
+                session_id = session_context.get("session_id")
+                history = list(session_context.get("history") or [])
+                if session_id and not history:
+                    messages = (
+                        db.query(ChatMessage)
+                        .filter(ChatMessage.session_id == session_id)
+                        .order_by(ChatMessage.created_at)
+                        .all()
+                    )
+                    history = [{"role": m.role, "content": m.content} for m in messages]
+
+                persisted_state = {}
+                if session_id and user_id:
+                    session = db.query(ChatSession).filter(
+                        ChatSession.session_id == session_id,
+                        ChatSession.user_id == user_id,
+                    ).first()
+                    if session and isinstance(session.session_data, dict):
+                        persisted_state = dict(session.session_data)
+
+                profile = dict(persisted_state.get("profile") or {})
+                profile.update(dict(session_context.get("profile") or {}))
+
+                latest_form16_extraction = None
+                if user_id and db is not None:
+                    latest_form16_extraction = (
+                        db.query(Form16Extraction)
+                        .filter(Form16Extraction.user_id == user_id)
+                        .order_by(Form16Extraction.created_at.desc())
+                        .first()
+                    )
+                if latest_form16_extraction:
+                    extracted_tax_profile: Dict[str, Any] = {"form16_provided": True}
+                    for column in latest_form16_extraction.__table__.columns:
+                        key = column.name
+                        value = getattr(latest_form16_extraction, key, None)
+                        if value is None:
+                            continue
+                        extracted_tax_profile[key] = float(value) if hasattr(value, "as_tuple") else value
+                    profile = {**extracted_tax_profile, **profile}
+
+                enriched_context = {
+                    **session_context,
+                    "profile": profile,
+                    "form16_extraction": latest_form16_extraction,
+                    "history": history,
+                    "pending": session_context.get("pending") if session_context.get("pending") is not None else persisted_state.get("pending"),
+                    "last_calc_result": session_context.get("last_calc_result") if session_context.get("last_calc_result") is not None else persisted_state.get("last_calc_result"),
+                }
+                structured = ChatService.generate_tax_assistant_response(user_message, enriched_context)
+
+                response_context = structured.get("context") or {}
+                ChatService._update_session_state(
+                    session_id=session_id,
+                    user_id=user_id,
+                    db=db,
+                    new_state={
+                        "profile": response_context.get("profile") or profile,
+                        "pending": response_context.get("pending"),
+                        "last_calc_result": response_context.get("last_calc_result"),
+                    },
+                )
                 return structured.get("reply") or "Please share your tax-related question."
             elif agent_type == "invest":
                 return ChatService.generate_investment_agent_response(user_message)
@@ -495,17 +515,15 @@ class ChatService:
 
     @staticmethod
     def generate_tax_assistant_response(message: str, context: Optional[Dict] = None) -> Dict:
-        """Generate a tax-only assistant response with interactive follow-up controls."""
+        """Generate a tax-only assistant response without interactive controls."""
         ctx = context or {}
         profile = dict(ctx.get("profile") or {})
-        is_registered = bool(ctx.get("is_registered") or profile.get("is_registered"))
         history = list(ctx.get("history") or [])[-12:]
+        pending = dict(ctx.get("pending") or {}) if isinstance(ctx.get("pending"), dict) else None
+        last_calc_result = dict(ctx.get("last_calc_result") or {}) if isinstance(ctx.get("last_calc_result"), dict) else None
+        form16_extraction = ctx.get("form16_extraction")
         text = (message or "").strip()
         lowered = text.lower()
-
-        def is_tax_related(query: str) -> bool:
-            q = query.lower()
-            return any(keyword in q for keyword in ChatService.TAX_KEYWORDS)
 
         def requires_calculation(query: str) -> bool:
             calc_keywords = {
@@ -516,556 +534,224 @@ class ChatService:
             q = query.lower()
             return any(keyword in q for keyword in calc_keywords)
 
-        def asks_form16_80c_amount(query: str) -> bool:
-            q = query.lower()
-            has_form16_ref = "form 16" in q or "form16" in q
-            has_80c_ref = "80c" in q or "section 80c" in q
-            asks_amount = any(k in q for k in ["how much", "claimed", "amount", "find", "check"])
-            return has_form16_ref and has_80c_ref and asks_amount
+        if pending and pending.get("field"):
+            resolved_value = ChatService._extract_pending_field_value(text, pending.get("field"))
+            if resolved_value is not None:
+                profile[pending["field"]] = resolved_value
+                pending = None
 
-        def extract_number(query: str) -> Optional[float]:
-            normalized = query.replace(",", "")
-            match = re.search(r"(\d+(?:\.\d+)?)", normalized)
-            if not match:
-                return None
-            return float(match.group(1))
+        available_tax_fields = dict(profile or {})
+        missing_required_fields = []
+        has_income_basis = bool(
+            available_tax_fields.get("gross_total_income")
+            or available_tax_fields.get("gross_salary")
+            or available_tax_fields.get("salary_section_17_1")
+            or available_tax_fields.get("perquisites_17_2")
+            or available_tax_fields.get("profits_in_lieu_17_3")
+            or available_tax_fields.get("income_under_salary")
+        )
+        if not has_income_basis:
+            missing_required_fields.append("gross_total_income")
+        has_form16_snapshot = bool(available_tax_fields)
+        if has_form16_snapshot:
+            profile["form16_provided"] = True
 
-        def llm_tax_interactive_reply(user_query: str, profile_data: Dict, conversation_history: List[Dict], pending_state: Optional[str]) -> Dict[str, Any]:
-            try:
-                chain = ChatService._get_tax_interactive_chain()
-                parser = JsonOutputParser()
-                payload = chain.invoke(
-                    {
-                        "format_instructions": parser.get_format_instructions(),
-                        "user_query": user_query,
-                        "profile_data": profile_data,
-                        "conversation_history": conversation_history,
-                        "pending_state": pending_state or "none",
-                        "tax_knowledge_context": ChatService._build_tax_knowledge_context(profile_data, ctx.get("db")),
-                        "available_controls": sorted(ChatService.CONTROL_LIBRARY.keys()),
-                    }
+        inferred_income = (
+            profile.get("gross_total_income")
+            or profile.get("gross_salary")
+            or profile.get("income_under_salary")
+        )
+        if inferred_income is not None and not profile.get("gross_income"):
+            profile["gross_income"] = float(inferred_income)
+
+        if ChatService._is_explanation_request(lowered, has_last_calc=bool(last_calc_result)):
+            explanation_calc = last_calc_result
+            if not explanation_calc and not missing_required_fields:
+                requested_regime = ChatService._detect_requested_regime(lowered)
+                explanation_calc = TaxCalculator.calculate_tax(
+                    form16_extraction=form16_extraction or profile,
+                    gross_income=profile.get("gross_income"),
+                    deductions=profile.get("deductions_80c") or 0,
+                    fiscal_year=profile.get("fiscal_year"),
+                    regime=requested_regime,
                 )
-                reply = str(payload.get("reply") or "").strip()
-                control_keys = [key for key in payload.get("control_keys") or [] if key in ChatService.CONTROL_LIBRARY]
-                return {"reply": reply, "controls": ChatService._controls(*control_keys)}
-            except Exception:
-                return {"reply": "", "controls": []}
-
-        controls: List[Dict] = []
-
-        yes_tokens = ChatService.YES_TOKENS
-        no_tokens = ChatService.NO_TOKENS
-
-        if ctx.get("pending") == "ask_hra":
-            if lowered in yes_tokens:
-                profile["has_hra"] = True
+            if explanation_calc and not explanation_calc.get("error"):
                 return {
-                    "reply": "Great. Please share your annual HRA exemption amount if you know it.",
+                    "reply": ChatService._format_tax_computation_explanation(explanation_calc),
                     "is_tax_related": True,
-                    "controls": ChatService._controls("hra_exemption_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_hra"},
-                }
-            if lowered in no_tokens:
-                profile["has_hra"] = False
-                return {
-                    "reply": "Noted. Do you claim any deduction under Section 80G (donations)?",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("has_80g_buttons"),
-                    "context": {"profile": profile, "history": history, "pending": "ask_80g"},
+                    "controls": [],
+                    "context": {
+                        "profile": profile,
+                        "history": history,
+                        "pending": pending,
+                        "last_calc_result": explanation_calc,
+                    },
                 }
 
-        if ctx.get("pending") == "capture_hra":
-            amount = extract_number(lowered)
-            if amount is not None:
-                profile["house_rent_exemption_10_13a"] = amount
+        if ChatService._is_tax_saving_advice_request(lowered):
+            return {
+                "reply": ChatService._build_tax_saving_advice(profile),
+                "is_tax_related": True,
+                "controls": [],
+                "context": {
+                    "profile": profile,
+                    "history": history,
+                    "pending": pending,
+                    "last_calc_result": last_calc_result,
+                },
+            }
+
+        should_calculate = requires_calculation(lowered) or bool(ctx.get("pending") and not pending)
+        if should_calculate:
+            requested_regime = ChatService._detect_requested_regime(lowered)
+            if missing_required_fields:
+                missing_prompts = {
+                    field: f"Please provide {field.replace('_', ' ')}."
+                    for field in missing_required_fields
+                }
+                next_field = next(iter(missing_prompts.keys()), None)
+                next_prompt = missing_prompts.get(next_field) if next_field else None
+                if not has_form16_snapshot:
+                    reply = (
+                        "I do not see required Form 16 extraction data yet. "
+                        "Please upload Form 16 or provide the missing details manually: "
+                        + "; ".join(missing_prompts)
+                    )
+                else:
+                    reply = "I need a bit more information before calculating tax: " + "; ".join(missing_prompts)
                 return {
-                    "reply": f"Captured HRA exemption as ₹{amount:,.0f}. Do you also have donation deductions under Section 80G?",
+                    "reply": reply,
                     "is_tax_related": True,
-                    "controls": ChatService._controls("has_80g_buttons"),
-                    "context": {"profile": profile, "history": history, "pending": "ask_80g"},
+                    "controls": [],
+                    "context": {
+                        "profile": profile,
+                        "history": history,
+                        "pending": (
+                            {
+                                "field": next_field,
+                                "prompt": next_prompt,
+                                "reason": "calculation",
+                            }
+                            if next_field
+                            else None
+                        ),
+                        "last_calc_result": last_calc_result,
+                    },
                 }
 
-        if ctx.get("pending") == "ask_80g":
-            if lowered in yes_tokens:
-                profile["has_80g"] = True
-                return {
-                    "reply": "Please keep your donation receipts ready for ITR filing. Do you know your total donation amount under 80G?",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("donations_80g_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_80g"},
-                }
-            if lowered in no_tokens:
-                profile["has_80g"] = False
-                llm_payload = llm_tax_interactive_reply(
-                    "Compare old and new tax regimes based on the collected profile data.",
-                    profile,
-                    history,
-                    None,
-                )
-                answer = llm_payload.get("reply")
-                return {
-                    "reply": answer or "Noted. Based on the details so far, I can compare old and new regime for you. Please share your gross annual income if missing.",
-                    "is_tax_related": True,
-                    "controls": llm_payload.get("controls") or [],
-                    "context": {"profile": profile, "history": history, "pending": None},
-                }
-
-        if ctx.get("pending") == "capture_80g":
-            amount = extract_number(lowered)
-            if amount is not None:
-                profile["donations_80g"] = amount
-                llm_payload = llm_tax_interactive_reply(
-                    "Compare old and new tax regimes based on current profile and include 80G implications.",
-                    profile,
-                    history,
-                    None,
-                )
-                answer = llm_payload.get("reply")
-                return {
-                    "reply": answer or f"Captured donation deduction as ₹{amount:,.0f}. Keep receipts ready for ITR. I can now compare regimes for you.",
-                    "is_tax_related": True,
-                    "controls": llm_payload.get("controls") or [],
-                    "context": {"profile": profile, "history": history, "pending": None},
-                }
-
-        if "yes" == lowered and ctx.get("pending") == "ask_life_insurance":
-            profile["has_life_insurance"] = True
-            reply = "Great. Approximately how much life insurance premium do you pay annually under Section 80C?"
-            controls.append(
-                ChatService._control("life_insurance_slider")
+            calc_result = TaxCalculator.calculate_tax(
+                form16_extraction=form16_extraction or profile,
+                gross_income=profile.get("gross_income"),
+                deductions=profile.get("deductions_80c") or 0,
+                fiscal_year=profile.get("fiscal_year"),
+                regime=requested_regime,
             )
-            return {
-                "reply": reply,
-                "is_tax_related": True,
-                "controls": controls,
-                "context": {"profile": profile, "history": history, "pending": "capture_life_insurance_premium"},
-            }
 
-        if "no" == lowered and ctx.get("pending") == "ask_life_insurance":
-            profile["has_life_insurance"] = False
-            return {
-                "reply": "Understood. Do you pay house rent and claim HRA?",
-                "is_tax_related": True,
-                "controls": ChatService._controls("has_hra_buttons"),
-                "context": {"profile": profile, "history": history, "pending": "ask_hra"},
-            }
-
-        if ctx.get("pending") == "capture_life_insurance_premium":
-            amount = extract_number(lowered)
-            if amount is not None:
-                profile["life_insurance_premium"] = amount
+            if calc_result.get("error"):
+                prompts = calc_result.get("missing_fields") or []
+                reply = calc_result["error"]
+                if prompts:
+                    reply = reply + " Please share: " + "; ".join(str(p) for p in prompts)
                 return {
-                    "reply": f"Captured. I recorded ₹{amount:,.0f} for life insurance premium. Do you also invest in PPF or ELSS?",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("has_other_80c_buttons"),
-                    "context": {"profile": profile, "history": history, "pending": "ask_other_80c"},
-                }
-
-        if ctx.get("pending") == "ask_other_80c":
-            if lowered in yes_tokens:
-                return {
-                    "reply": "Please enter your estimated additional 80C investment amount (PPF/ELSS/etc.).",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("other_80c_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_other_80c"},
-                }
-            if lowered in no_tokens:
-                return {
-                    "reply": "Noted. Do you claim HRA exemption?",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "has_hra",
-                            "label": "Do you claim HRA?",
-                            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_hra"},
-                }
-
-        if ctx.get("pending") == "capture_other_80c":
-            amount = extract_number(lowered)
-            if amount is not None:
-                profile["deductions_80c"] = (profile.get("life_insurance_premium") or 0) + amount
-                return {
-                    "reply": f"Captured. Your total 80C estimate is ₹{profile['deductions_80c']:,.0f}. Do you claim HRA exemption?",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "has_hra",
-                            "label": "Do you claim HRA?",
-                            "options": [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_hra"},
-                }
-
-        if ctx.get("pending") == "capture_income":
-            amount = extract_number(lowered)
-            if amount is not None and amount > 0:
-                profile["gross_income"] = amount
-                return {
-                    "reply": (
-                        f"Thanks. I noted your gross annual income as ₹{amount:,.0f}. "
-                        "Do you pay life insurance premium under Section 80C?"
-                    ),
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("has_life_insurance_buttons"),
-                    "context": {"profile": profile, "history": history, "pending": "ask_life_insurance"},
-                }
-
-        if not is_tax_related(lowered) and not ctx.get("pending"):
-            return {
-                "reply": (
-                    "I can only help with tax-related topics. "
-                    "Please ask about income tax, deductions (80C/80D), HRA, ITR filing, or regime comparison."
-                ),
-                "is_tax_related": False,
-                "controls": [
-                    {
-                        "type": "options",
-                        "key": "suggested_tax_topics",
-                        "label": "Try one of these:",
-                        "options": [
-                            {"label": "Compare old vs new regime", "value": "compare old vs new regime"},
-                            {"label": "How much 80C can I claim?", "value": "how much 80c can i claim"},
-                            {"label": "What documents do I need for ITR?", "value": "what documents do i need for itr"},
-                        ],
-                    }
-                ],
-                "context": {"profile": profile, "history": history, "pending": None},
-            }
-
-        if asks_form16_80c_amount(lowered):
-            amount_80c = profile.get("deductions_80c")
-            if amount_80c is not None:
-                return {
-                    "reply": f"Based on your uploaded Form 16, your claimed deduction under Section 80C is ₹{float(amount_80c):,.0f}.",
+                    "reply": reply,
                     "is_tax_related": True,
                     "controls": [],
-                    "context": {"profile": profile, "history": history, "pending": None},
+                    "context": {
+                        "profile": profile,
+                        "history": history,
+                        "pending": None,
+                        "last_calc_result": last_calc_result,
+                    },
                 }
-            if not is_registered:
-                return {
-                    "reply": "I can read Form 16 and compute this. If you are not registered yet, you can either register now or enter your 80C amount manually.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "registration_required",
-                            "label": "Choose how to continue:",
-                            "options": [
-                                {"label": "Register now", "value": "register_now"},
-                                {"label": "Enter 80C manually", "value": "enter_80c_manually"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_80c_manual_without_registration"},
-                }
+
+            old_regime = calc_result.get("old_regime") or {}
+            new_regime = calc_result.get("new_regime") or {}
+            comparison = calc_result.get("comparison") or {}
+            old_tax = float(old_regime.get("total_tax") or 0)
+            new_tax = float(new_regime.get("total_tax") or 0)
+            recommended = comparison.get("recommended_regime") or ("Old Regime" if old_tax <= new_tax else "New Regime")
+            savings = float(comparison.get("savings") or abs(old_tax - new_tax))
+
+            if requested_regime == "new":
+                tax_before_cess = float(new_regime.get("tax_on_total_income") or 0)
+                cess = float(new_regime.get("health_education_cess") or 0)
+                taxable = float(new_regime.get("taxable_income") or 0)
+                reply_text = (
+                    f"Here is your New Regime tax estimate. Taxable income: ₹{taxable:,.0f}. "
+                    f"Tax before cess: ₹{tax_before_cess:,.0f}. Cess: ₹{cess:,.0f}. "
+                    f"Final tax: ₹{new_tax:,.0f}."
+                )
+            elif requested_regime == "old":
+                tax_before_cess = float(old_regime.get("tax_on_total_income") or 0)
+                cess = float(old_regime.get("health_education_cess") or 0)
+                taxable = float(old_regime.get("taxable_income") or 0)
+                reply_text = (
+                    f"Here is your Old Regime tax estimate. Taxable income: ₹{taxable:,.0f}. "
+                    f"Tax before cess: ₹{tax_before_cess:,.0f}. Cess: ₹{cess:,.0f}. "
+                    f"Final tax: ₹{old_tax:,.0f}."
+                )
+            else:
+                reply_text = (
+                    f"Here is your tax comparison. Old Regime tax: ₹{old_tax:,.0f}. "
+                    f"New Regime tax: ₹{new_tax:,.0f}. "
+                    f"Recommended: {recommended}. Estimated difference: ₹{savings:,.0f}."
+                )
+
             return {
-                "reply": "I can read this from Form 16. I do not see Form 16 data yet. Would you like to upload Form 16 now or enter 80C manually?",
+                "reply": reply_text,
                 "is_tax_related": True,
-                "controls": [
-                    {
-                        "type": "buttons",
-                        "key": "upload_form16_now",
-                        "label": "Choose one:",
-                        "options": [
-                            {"label": "Yes", "value": "upload_form16_yes"},
-                            {"label": "No", "value": "upload_form16_no"},
-                            {"label": "Enter 80C manually", "value": "enter_80c_manually"},
-                        ],
-                    }
-                ],
-                "context": {"profile": profile, "history": history, "pending": "ask_80c_capture_method"},
+                "controls": [],
+                "context": {
+                    "profile": profile,
+                    "history": history,
+                    "pending": None,
+                    "last_calc_result": calc_result,
+                },
             }
 
-        if requires_calculation(lowered) and not ctx.get("pending"):
-            if not is_registered:
+        try:
+            llm = ChatService._get_tax_reply_llm()
+            knowledge_context = ChatService._build_tax_knowledge_context(profile)
+            safe_profile = ChatService._make_json_safe(profile)
+            safe_history = ChatService._make_json_safe(history)
+            safe_last_calc = ChatService._make_json_safe(last_calc_result)
+            llm_prompt = (
+                "You are RuPi assistant. Keep a natural conversational flow across turns. "
+                "Use history, profile data, and latest calculation context when answering. "
+                "If the user asks whether latest Form16 is available, answer based only on profile/extraction context; do not invent data. "
+                "If user asks tax computation details, explain from calculation context if present. "
+                "Do not produce markdown tables or JSON; respond with plain text only.\n\n"
+                f"Profile data: {json.dumps(safe_profile, ensure_ascii=False)}\n"
+                f"Recent history: {json.dumps(safe_history, ensure_ascii=False)}\n"
+                f"Last calculation context: {json.dumps(safe_last_calc, ensure_ascii=False)}\n"
+                f"Tax knowledge context: {knowledge_context}\n"
+                f"User question: {text}"
+            )
+            llm_response = llm.invoke(llm_prompt)
+            llm_text = (getattr(llm_response, "content", "") or "").strip()
+            if llm_text:
                 return {
-                    "reply": "For best accuracy, register/login so I can read your documents. You can also continue by entering values manually in chat.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "registration_required",
-                            "label": "Choose how to continue:",
-                            "options": [
-                                {"label": "Register now", "value": "register_now"},
-                                {"label": "Continue with manual inputs", "value": "continue_manual"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_manual_without_registration"},
-                }
-
-            if not profile.get("form16_provided"):
-                return {
-                    "reply": "For accurate calculation, please upload Form 16 first. Would you like to upload it now?",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "upload_form16_now",
-                            "label": "Upload Form 16 now?",
-                            "options": [
-                                {"label": "Yes", "value": "upload_form16_yes"},
-                                {"label": "No", "value": "upload_form16_no"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_upload_form16"},
-                }
-
-        needs_income = any(k in lowered for k in ["calculate", "compare", "which regime", "tax liability", "save tax"])
-        if needs_income and not profile.get("gross_income"):
-            if not profile.get("form16_provided"):
-                return {
-                    "reply": "Before comparison, have you uploaded Form 16? It helps me ask fewer questions and improves accuracy.",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("form16_uploaded_buttons"),
-                    "context": {"profile": profile, "history": history, "pending": "ask_form16"},
-                }
-            return {
-                "reply": "I can help with that. Please share your gross annual income first.",
-                "is_tax_related": True,
-                "controls": ChatService._controls("gross_income_slider"),
-                "context": {"profile": profile, "history": history, "pending": "capture_income"},
-            }
-
-        if ctx.get("pending") == "ask_form16":
-            if lowered in {"form16_yes", "yes"}:
-                profile["form16_provided"] = True
-                return {
-                    "reply": "Perfect. I will use your Form 16 details when available. Please share your gross annual income to start the comparison.",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("gross_income_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_income"},
-                }
-
-        if ctx.get("pending") == "ask_manual_without_registration":
-            if lowered in {"continue_manual", "manual", "yes"}:
-                return {
-                    "reply": "Sure. Let us continue manually. Please share your gross annual income.",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("gross_income_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_income"},
-                }
-            if lowered in {"register_now"}:
-                return {
-                    "reply": "Please register/login, then continue here and I will use your uploaded documents for better accuracy.",
-                    "is_tax_related": True,
+                    "reply": llm_text,
+                    "is_tax_related": any(k in lowered for k in ChatService.TAX_KEYWORDS),
                     "controls": [],
-                    "context": {"profile": profile, "history": history, "pending": None},
+                    "context": {
+                        "profile": profile,
+                        "history": history,
+                        "pending": pending,
+                        "last_calc_result": last_calc_result,
+                    },
                 }
-
-        if ctx.get("pending") == "ask_80c_manual_without_registration":
-            if lowered in {"enter_80c_manually", "manual", "yes"}:
-                return {
-                    "reply": "Please enter your total claimed Section 80C amount.",
-                    "is_tax_related": True,
-                    "controls": ChatService._controls("deductions_80c_slider"),
-                    "context": {"profile": profile, "history": history, "pending": "capture_80c_manual"},
-                }
-            if lowered in {"register_now"}:
-                return {
-                    "reply": "Please register/login and upload Form 16. Then I can fetch exact 80C directly from your document.",
-                    "is_tax_related": True,
-                    "controls": [],
-                    "context": {"profile": profile, "history": history, "pending": None},
-                }
-
-        if ctx.get("pending") == "ask_80c_capture_method":
-            if lowered in {"enter_80c_manually", "manual"}:
-                return {
-                    "reply": "Please enter your total claimed Section 80C amount.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "slider",
-                            "key": "deductions_80c",
-                            "label": "Section 80C claimed amount (INR)",
-                            "min": 0,
-                            "max": 150000,
-                            "step": 5000,
-                            "default": 50000,
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "capture_80c_manual"},
-                }
-            if lowered in {"upload_form16_yes", "yes"}:
-                return {
-                    "reply": "Great. Please upload your Form 16 using the upload section above, then choose 'Uploaded'.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "form16_upload_progress",
-                            "label": "After uploading, choose:",
-                            "options": [
-                                {"label": "Uploaded", "value": "form16_done"},
-                                {"label": "Skip for now", "value": "form16_skip"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "wait_form16_upload"},
-                }
-            if lowered in {"upload_form16_no", "no"}:
-                return {
-                    "reply": "No problem. You can enter your 80C amount manually.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "slider",
-                            "key": "deductions_80c",
-                            "label": "Section 80C claimed amount (INR)",
-                            "min": 0,
-                            "max": 150000,
-                            "step": 5000,
-                            "default": 50000,
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "capture_80c_manual"},
-                }
-
-        if ctx.get("pending") == "capture_80c_manual":
-            amount = extract_number(lowered)
-            if amount is not None and amount >= 0:
-                profile["deductions_80c"] = amount
-                return {
-                    "reply": f"Captured. Your Section 80C claimed amount is recorded as ₹{amount:,.0f}.",
-                    "is_tax_related": True,
-                    "controls": [],
-                    "context": {"profile": profile, "history": history, "pending": None},
-                }
-            if lowered in {"form16_no", "no"}:
-                profile["form16_provided"] = False
-                return {
-                    "reply": "No problem. Would you like to upload Form 16 now?",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "upload_form16_now",
-                            "label": "Upload Form 16 now?",
-                            "options": [
-                                {"label": "Yes", "value": "upload_form16_yes"},
-                                {"label": "No", "value": "upload_form16_no"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "ask_upload_form16"},
-                }
-
-        if ctx.get("pending") == "ask_upload_form16":
-            if lowered in {"upload_form16_yes", "yes"}:
-                return {
-                    "reply": "Great. Please upload your Form 16 using the upload section above, then type 'done' once uploaded.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "buttons",
-                            "key": "form16_upload_progress",
-                            "label": "After uploading, choose:",
-                            "options": [
-                                {"label": "Uploaded", "value": "form16_done"},
-                                {"label": "Skip for now", "value": "form16_skip"},
-                            ],
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "wait_form16_upload"},
-                }
-            if lowered in {"upload_form16_no", "no"}:
-                return {
-                    "reply": "Understood. Please keep these ready for ITR later: Form 16, donation receipts (80G), and health insurance premium receipts (80D). Share your gross annual income to continue.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "slider",
-                            "key": "gross_income",
-                            "label": "Gross annual income (INR)",
-                            "min": 300000,
-                            "max": 5000000,
-                            "step": 50000,
-                            "default": 1200000,
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "capture_income"},
-                }
-
-        if ctx.get("pending") == "wait_form16_upload":
-            if lowered in {"form16_done", "done", "uploaded", "upload complete"}:
-                profile["form16_provided"] = True
-                return {
-                    "reply": "Perfect. I will factor in your Form 16 details. Please share your gross annual income to continue.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "slider",
-                            "key": "gross_income",
-                            "label": "Gross annual income (INR)",
-                            "min": 300000,
-                            "max": 5000000,
-                            "step": 50000,
-                            "default": 1200000,
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "capture_income"},
-                }
-            if lowered in {"form16_skip", "skip", "not now"}:
-                profile["form16_provided"] = False
-                return {
-                    "reply": "No problem. Please share your gross annual income and I will continue without Form 16.",
-                    "is_tax_related": True,
-                    "controls": [
-                        {
-                            "type": "slider",
-                            "key": "gross_income",
-                            "label": "Gross annual income (INR)",
-                            "min": 300000,
-                            "max": 5000000,
-                            "step": 50000,
-                            "default": 1200000,
-                        }
-                    ],
-                    "context": {"profile": profile, "history": history, "pending": "capture_income"},
-                }
-
-        llm_payload = llm_tax_interactive_reply(text, profile, history, ctx.get("pending"))
-        llm_answer = llm_payload.get("reply")
-        llm_controls = llm_payload.get("controls") or []
-        if llm_answer:
-            return {
-                "reply": llm_answer,
-                "is_tax_related": True,
-                "controls": llm_controls,
-                "context": {"profile": profile, "history": history, "pending": None},
-            }
+        except Exception:
+            logger.debug("Falling back to default tax reply", exc_info=True)
 
         return {
-            "reply": (
-                "Sure. I can help with tax planning, deductions, filing, and regime comparison. "
-                "If you want a personalized estimate, share your gross annual income."
-            ),
-            "is_tax_related": True,
-            "controls": [
-                {
-                    "type": "slider",
-                    "key": "gross_income",
-                    "label": "Gross annual income (INR)",
-                    "min": 300000,
-                    "max": 5000000,
-                    "step": 50000,
-                    "default": 1000000,
-                },
-                {
-                    "type": "buttons",
-                    "key": "need_regime_comparison",
-                    "label": "Need old vs new regime comparison?",
-                    "options": [{"label": "Yes", "value": "compare old vs new regime"}, {"label": "No", "value": "show deductions"}],
-                },
-            ],
-            "context": {"profile": profile, "history": history, "pending": "capture_income"},
+            "reply": "I can help with your queries and continue the conversation. Ask anything related to your tax profile or Form 16 context.",
+            "is_tax_related": any(k in lowered for k in ChatService.TAX_KEYWORDS),
+            "controls": [],
+            "context": {
+                "profile": profile,
+                "history": history,
+                "pending": pending,
+                "last_calc_result": last_calc_result,
+            },
         }

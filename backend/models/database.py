@@ -89,6 +89,87 @@ class DocumentUpload(Base):
     )
 
 
+class Form16Extraction(Base):
+    """Structured extraction snapshots for uploaded Form-16/salary documents."""
+    __tablename__ = "form16_extractions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    extraction_id = Column(String(100), unique=True, index=True)
+    upload_id = Column(String(100), index=True)
+    user_id = Column(String(100), index=True)
+    filename = Column(String(255), nullable=True)
+    document_type = Column(String(50), nullable=True)
+    classified_document_type = Column(String(50), nullable=True)
+    storage_path = Column(String(500), nullable=True)
+    sanitized_text_preview = Column(Text, nullable=True)
+    extraction_method = Column(String(100), nullable=True)
+
+    gross_salary = Column(DECIMAL(15, 2), nullable=True)
+    salary_section_17_1 = Column(DECIMAL(15, 2), nullable=True)
+    perquisites_17_2 = Column(DECIMAL(15, 2), nullable=True)
+    profits_in_lieu_17_3 = Column(DECIMAL(15, 2), nullable=True)
+    basic_salary = Column(DECIMAL(15, 2), nullable=True)
+    hra = Column(DECIMAL(15, 2), nullable=True)
+    lta = Column(DECIMAL(15, 2), nullable=True)
+    travel_concession_exemption = Column(DECIMAL(15, 2), nullable=True)
+    gratuity_exemption = Column(DECIMAL(15, 2), nullable=True)
+    commuted_pension_exemption = Column(DECIMAL(15, 2), nullable=True)
+    leave_encashment_exemption = Column(DECIMAL(15, 2), nullable=True)
+    other_section10_exemptions = Column(DECIMAL(15, 2), nullable=True)
+    total_section10_exemptions = Column(DECIMAL(15, 2), nullable=True)
+    salary_after_section10_exemptions = Column(DECIMAL(15, 2), nullable=True)
+    other_allowances = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80c = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80ccc = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80ccd_1 = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80ccd_1b = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80ccd_2 = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80d = Column(DECIMAL(15, 2), nullable=True)
+    deductions_80e = Column(DECIMAL(15, 2), nullable=True)
+    deductions_other = Column(DECIMAL(15, 2), nullable=True)
+    entertainment_allowance = Column(DECIMAL(15, 2), nullable=True)
+    standard_deduction = Column(DECIMAL(15, 2), nullable=True)
+    professional_tax = Column(DECIMAL(15, 2), nullable=True)
+    total_section16_deductions = Column(DECIMAL(15, 2), nullable=True)
+    income_under_salary = Column(DECIMAL(15, 2), nullable=True)
+    house_property_income = Column(DECIMAL(15, 2), nullable=True)
+    other_sources_income = Column(DECIMAL(15, 2), nullable=True)
+    total_other_income = Column(DECIMAL(15, 2), nullable=True)
+    gross_total_income = Column(DECIMAL(15, 2), nullable=True)
+    chapter_via_total_deductions = Column(DECIMAL(15, 2), nullable=True)
+    tds = Column(DECIMAL(15, 2), nullable=True)
+    net_salary = Column(DECIMAL(15, 2), nullable=True)
+    taxable_income = Column(DECIMAL(15, 2), nullable=True)
+    tax_payable = Column(DECIMAL(15, 2), nullable=True)
+    net_payable_tax = Column(DECIMAL(15, 2), nullable=True)
+    surcharge = Column(DECIMAL(15, 2), nullable=True)
+    health_education_cess = Column(DECIMAL(15, 2), nullable=True)
+    relief_89 = Column(DECIMAL(15, 2), nullable=True)
+    section_87a_rebate = Column(DECIMAL(15, 2), nullable=True)
+    house_rent_exemption_10_13a = Column(DECIMAL(15, 2), nullable=True)
+    donations_80g = Column(DECIMAL(15, 2), nullable=True)
+    other_income = Column(DECIMAL(15, 2), nullable=True)
+
+    financial_year = Column(String(15), nullable=True)
+    assessment_year = Column(String(15), nullable=True)
+    form16_part_a_present = Column(Boolean, nullable=True)
+    form16_part_b_present = Column(Boolean, nullable=True)
+
+    employee_name = Column(String(255), nullable=True)
+    employer_name = Column(String(255), nullable=True)
+    pan = Column(String(20), nullable=True)
+    pan_last4 = Column(String(4), nullable=True)
+    address = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        Index('idx_form16_user_created', 'user_id', 'created_at'),
+        Index('idx_form16_upload', 'upload_id'),
+    )
+
+
 class RuleCache(Base):
     """Metadata for rule extraction and caching"""
     __tablename__ = "rule_cache"

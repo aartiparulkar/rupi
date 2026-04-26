@@ -693,13 +693,22 @@ class DocumentParser:
 
         return identity
 
-    def extract_financial_data(self, file_path: str, document_type: str) -> Tuple[Dict, Optional[str], str]:
+    def extract_financial_data(
+        self,
+        file_path: str,
+        document_type: str,
+        raw_text_override: Optional[str] = None,
+    ) -> Tuple[Dict, Optional[str], str]:
         """Extract tax fields from uploaded file path and return (data, error, sanitized_text)."""
         try:
-            raw_text = self.pdf_processor.extract_text(file_path, use_llm_cleanup=True)
-            langchain_text = self.extract_with_langchain_loader(file_path)
-            if len(langchain_text) > len(raw_text):
-                raw_text = langchain_text
+            if raw_text_override is not None:
+                raw_text = raw_text_override
+            else:
+                raw_text = self.pdf_processor.extract_text(file_path, use_llm_cleanup=True)
+                langchain_text = self.extract_with_langchain_loader(file_path)
+                if len(langchain_text) > len(raw_text):
+                    raw_text = langchain_text
+
             if not raw_text.strip():
                 return {}, "Could not extract text from document", ""
 
@@ -744,10 +753,17 @@ class DocumentParser:
             classified_type = document_type or self.classify_document(filename, sanitized_text)
 
             if classified_type in {"form_16", "salary_slip"}:
-                data, error, _ = self.extract_financial_data(tmp_path, classified_type)
+                data, error, _ = self.extract_financial_data(
+                    tmp_path,
+                    classified_type,
+                    raw_text_override=raw_text,
+                )
                 return data, error, classified_type, sanitized_text, identity_fields
 
             return {}, None, classified_type, sanitized_text, identity_fields
+        except Exception as exc:
+            logger.error("Byte extraction failed for %s: %s", filename, str(exc), exc_info=True)
+            return {}, f"Parsing failed: {str(exc)}", "unknown", "", {}
         finally:
             if tmp_path:
                 try:

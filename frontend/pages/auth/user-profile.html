@@ -777,9 +777,6 @@
         docFiles.unshift(tempDoc);
         renderDocs();
 
-        const formData = new FormData();
-        formData.append('file', file);
-
         const stageTimers = [
           setTimeout(() => {
             tempDoc.status = 'processing';
@@ -799,11 +796,18 @@
         ];
 
         try {
-          const res = await fetch(apiUrl('/api/user/documents'), {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${currentToken}` },
-            body: formData
-          });
+          const sendUpload = async (confirmOverride = false) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (confirmOverride) formData.append('confirm_override', 'true');
+            return fetch(apiUrl('/api/user/documents'), {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${currentToken}` },
+              body: formData
+            });
+          };
+
+          let res = await sendUpload(false);
 
           if (res.status === 401) {
             stageTimers.forEach(clearTimeout);
@@ -818,8 +822,28 @@
           } catch (_) {
             payload = { detail: raw };
           }
+
+          if (res.status === 409) {
+            const detail = payload.detail || {};
+            const confirmMessage = detail.message || 'A Form 16 already exists. Do you want to replace it?';
+            const shouldOverride = window.confirm(confirmMessage);
+            if (!shouldOverride) {
+              throw new Error('Upload cancelled. Existing Form 16 kept.');
+            }
+
+            res = await sendUpload(true);
+            const overrideRaw = await res.text();
+            try {
+              payload = overrideRaw ? JSON.parse(overrideRaw) : {};
+            } catch (_) {
+              payload = { detail: overrideRaw };
+            }
+          }
           if (!res.ok) {
-            throw new Error(payload.detail || 'Upload failed');
+            const detailMessage = typeof payload.detail === 'string'
+              ? payload.detail
+              : (payload.detail?.message || 'Upload failed');
+            throw new Error(detailMessage);
           }
 
           stageTimers.forEach(clearTimeout);

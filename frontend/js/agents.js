@@ -98,8 +98,77 @@ function initTaxAgent() {
   // Real backend-backed upload flow
   initTaxDocumentUpload(API_BASE);
 
+  // ITR workbook download flow
+  initItrWorkbookDownload(API_BASE);
+
   // Deduction suggestions
   initDeductionSuggestions();
+}
+
+function initItrWorkbookDownload(apiBase) {
+  const button = document.getElementById('download-itr-workbook');
+  if (!button) return;
+
+  button.addEventListener('click', async () => {
+    const token = getValidStoredToken();
+    if (!token) {
+      redirectToLogin('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    const previousLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Generating workbook...';
+
+    try {
+      const res = await fetch(`${apiBase}/api/user/documents/itr/workbook`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401) {
+        redirectToLogin('Your session has expired. Please sign in again.');
+        return;
+      }
+
+      if (!res.ok) {
+        let errorMessage = 'Unable to generate the ITR workbook.';
+        try {
+          const detail = await res.json();
+          if (typeof detail?.detail === 'string') {
+            errorMessage = detail.detail;
+          } else if (detail?.detail?.message) {
+            errorMessage = detail.detail.message;
+          }
+        } catch (parseErr) {
+          const fallbackText = await res.text();
+          if (fallbackText) errorMessage = fallbackText;
+        }
+        showToast(errorMessage, 'error');
+        return;
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get('content-disposition') || '';
+      const filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+      const filename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || 'ITR1_filled_2025-26.xlsm');
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+
+      showToast('Your filled ITR workbook is downloading.', 'success');
+    } catch (err) {
+      showToast(err?.message || 'Unable to generate the ITR workbook.', 'error');
+    } finally {
+      button.disabled = false;
+      button.textContent = previousLabel;
+    }
+  });
 }
 
 function initTaxDocumentUpload(apiBase) {
@@ -158,25 +227,50 @@ function initTaxDocumentUpload(apiBase) {
     }
 
     renderItem(file.name, 'uploading', `${(file.size / 1024).toFixed(1)} KB`);
-    const form = new FormData();
-    form.append('file', file);
+    const sendUpload = async (confirmOverride = false) => {
+      const form = new FormData();
+      form.append('file', file);
+      if (confirmOverride) {
+        form.append('confirm_override', 'true');
+      }
 
-    try {
-      const res = await fetch(`${apiBase}/api/user/documents`, {
+      return fetch(`${apiBase}/api/user/documents`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
       });
+    };
+
+    try {
+      let res = await sendUpload(false);
 
       if (res.status === 401) {
         redirectToLogin('Your session has expired. Please sign in again.');
         return;
       }
 
-      const data = await res.json();
+      let data = await res.json();
+
+      if (res.status === 409) {
+        const detail = data?.detail || {};
+        const confirmMessage = detail.message || 'A Form 16 already exists. Do you want to replace it?';
+        const shouldOverride = window.confirm(confirmMessage);
+        if (!shouldOverride) {
+          renderItem(file.name, 'failed', 'override cancelled');
+          showToast('Upload cancelled. Existing Form 16 kept.', 'warning');
+          return;
+        }
+
+        res = await sendUpload(true);
+        data = await res.json();
+      }
+
       if (!res.ok) {
-        renderItem(file.name, 'failed', data.detail || 'upload failed');
-        showToast(data.detail || `Upload failed for ${file.name}`, 'error');
+        const detailMessage = typeof data.detail === 'string'
+          ? data.detail
+          : (data.detail?.message || 'upload failed');
+        renderItem(file.name, 'failed', detailMessage);
+        showToast(detailMessage || `Upload failed for ${file.name}`, 'error');
         return;
       }
 
@@ -861,26 +955,13 @@ function initAgentChat(containerId, agentType) {
   const sendBtn      = container.querySelector('.chat-send-btn');
   const API_BASE = 'http://127.0.0.1:8000';
   const taxState = TAX_CHAT_SHARED_STATE;
+  const sessionAgentType = agentType === 'investment' ? 'invest' : agentType;
+  let chatSessionId = null;
 
   const pushHistory = (role, content) => {
     const history = taxState.context.history || [];
     history.push({ role, content, ts: new Date().toISOString() });
     taxState.context.history = history.slice(-12);
-  };
-
-  const agentReplies = {
-    invest: [
-      'Based on your risk profile, a 60:40 equity-to-debt allocation could give you optimal risk-adjusted returns.',
-      'For your 5-year horizon, ELSS funds offer both tax benefits and equity growth potential.',
-      'Consider starting an SIP of at least ₹5,000/month to build a corpus efficiently over time.',
-      'Current market conditions suggest increasing gold allocation slightly as a hedge.',
-    ],
-    security: [
-      'All your uploaded documents are secured with AES-256 encryption and verified on the blockchain.',
-      'I detected no unusual login patterns in the last 30 days. Your account security is excellent.',
-      'Your Form 16 was successfully notarized. Its blockchain hash is immutable and tamper-proof.',
-      'MFA is active on your account. I recommend enabling biometric login for additional security.',
-    ],
   };
 
   const createProgressTracker = (steps) => {
@@ -936,6 +1017,121 @@ function initAgentChat(containerId, agentType) {
     };
   };
 
+  const getProgressSteps = (kind) => {
+    if (kind === 'tax') {
+      return [
+        'Understanding your tax question',
+        'Reviewing profile and uploaded Form 16 context',
+        'Evaluating deductions and tax rules',
+        'Composing the final guidance'
+      ];
+    }
+    if (kind === 'invest') {
+      return [
+        'Understanding your investment question',
+        'Reviewing your profile context',
+        'Generating investment response',
+        'Finalizing response'
+      ];
+    }
+    return [
+      'Understanding your security question',
+      'Reviewing your profile context',
+      'Generating security response',
+      'Finalizing response'
+    ];
+  };
+
+  const getLatestAssistantReply = (messages) => {
+    if (!Array.isArray(messages)) return '';
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const msg = messages[i];
+      if (msg && msg.role === 'assistant' && msg.content) {
+        return String(msg.content);
+      }
+    }
+    return '';
+  };
+
+  const createChatSessionIfNeeded = async (token) => {
+    if (chatSessionId) return chatSessionId;
+
+    const res = await fetch(`${API_BASE}/api/chat/session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ agent_type: sessionAgentType }),
+    });
+
+    if (res.status === 401) {
+      redirectToLogin('Your session has expired. Please sign in again.');
+      return null;
+    }
+
+    const data = await res.json();
+    if (!res.ok) {
+      const detail = typeof data.detail === 'string' ? data.detail : 'Unable to create chat session.';
+      throw new Error(detail);
+    }
+
+    chatSessionId = data.session_id || data.session?.session_id || null;
+    return chatSessionId;
+  };
+
+  const sendMessageToSession = async (text) => {
+    const token = getValidStoredToken();
+    if (!token) {
+      redirectToLogin('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    const sessionId = await createChatSessionIfNeeded(token);
+    if (!sessionId) return;
+
+    let res = await fetch(`${API_BASE}/api/chat/session/${sessionId}/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ role: 'user', content: text }),
+    });
+
+    if (res.status === 404) {
+      // Session might be stale; recreate once and retry.
+      chatSessionId = null;
+      const recreated = await createChatSessionIfNeeded(token);
+      if (!recreated) return;
+      res = await fetch(`${API_BASE}/api/chat/session/${recreated}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role: 'user', content: text }),
+      });
+    }
+
+    if (res.status === 401) {
+      redirectToLogin('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    const data = await res.json();
+    if (!res.ok) {
+      const detail = typeof data.detail === 'string' ? data.detail : 'Unable to process your request right now.';
+      throw new Error(detail);
+    }
+
+    const reply = getLatestAssistantReply(data.messages);
+    if (agentType === 'tax') {
+      pushHistory('assistant', reply || '');
+    }
+    appendMessage(chatMessages, reply || 'Please share your query.', 'agent');
+  };
+
   const send = () => {
     const text = chatInput?.value.trim();
     if (!text) return;
@@ -945,205 +1141,28 @@ function initAgentChat(containerId, agentType) {
 
     if (agentType === 'tax') {
       pushHistory('user', text);
-      sendTaxMessage(text);
-      return;
     }
 
-    const progress = createProgressTracker([
-      'Understanding your question',
-      'Reviewing your profile context',
-      'Drafting a recommendation',
-      'Finalizing response'
-    ]);
+    const progress = createProgressTracker(getProgressSteps(agentType));
 
     const phaseTimers = [
-      setTimeout(() => progress.setActive(1), 450),
-      setTimeout(() => progress.setActive(2), 1100),
-      setTimeout(() => progress.setActive(3), 1800)
+      setTimeout(() => progress.setActive(1), 500),
+      setTimeout(() => progress.setActive(2), 1200),
+      setTimeout(() => progress.setActive(3), 2000)
     ];
 
-    const replies = agentReplies[agentType] || [
-      'I can help with this. Please share more details so I can guide you accurately.',
-    ];
-    const reply = replies[Math.floor(Math.random() * replies.length)];
-
-    setTimeout(() => {
-      phaseTimers.forEach(clearTimeout);
-      progress.complete();
-      progress.remove();
-      appendMessage(chatMessages, reply, 'agent');
-    }, 1400 + Math.random() * 800);
-  };
-
-  const sendTaxMessage = async (text) => {
-    const progress = createProgressTracker([
-      'Understanding your tax question',
-      'Reviewing profile and uploaded Form 16 context',
-      'Evaluating deductions and tax rules',
-      'Composing the final guidance'
-    ]);
-
-    const phaseTimers = [
-      setTimeout(() => progress.setActive(1), 550),
-      setTimeout(() => progress.setActive(2), 1400),
-      setTimeout(() => progress.setActive(3), 2400)
-    ];
-
-    try {
-      const token = getValidStoredToken();
-      const res = await fetch(`${API_BASE}/api/tax-agent/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          message: text,
-          context: taxState.context,
-        }),
-      });
-
-      if (res.status === 401) {
+    sendMessageToSession(text)
+      .then(() => {
         phaseTimers.forEach(clearTimeout);
-        progress.fail(1);
-        progress.remove();
-        redirectToLogin('Your session has expired. Please sign in again.');
-        return;
-      }
-
-      const data = await res.json();
-      phaseTimers.forEach(clearTimeout);
-      if (res.ok) {
         progress.complete();
-      } else {
+        progress.remove();
+      })
+      .catch((err) => {
+        phaseTimers.forEach(clearTimeout);
         progress.fail(3);
-      }
-      progress.remove();
-      if (!res.ok) {
-        appendMessage(chatMessages, data.detail || 'Unable to process your request right now.', 'agent');
-        return;
-      }
-
-      taxState.context = data.context || taxState.context;
-      appendMessage(chatMessages, data.reply || 'Please share a tax-related query.', 'agent');
-      pushHistory('assistant', data.reply || '');
-      renderTaxControls(chatMessages, data.controls || []);
-    } catch (err) {
-      phaseTimers.forEach(clearTimeout);
-      progress.fail(1);
-      progress.remove();
-      appendMessage(chatMessages, 'I could not reach the Tax Assistant backend. Please ensure the API is running on port 8000.', 'agent');
-    }
-  };
-
-  const renderTaxControls = (containerNode, controls) => {
-    controls.forEach((control) => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'chat-message agent';
-      wrapper.innerHTML = `
-        <div class="chat-avatar">AI</div>
-        <div class="chat-bubble" style="display:flex;flex-direction:column;gap:8px;"></div>
-      `;
-      const bubble = wrapper.querySelector('.chat-bubble');
-
-      const title = document.createElement('div');
-      title.style.fontWeight = '600';
-      title.style.fontSize = '0.85rem';
-      title.textContent = control.label || 'Please choose:';
-      bubble.appendChild(title);
-
-      if (control.type === 'buttons' || control.type === 'options') {
-        const optionsRow = document.createElement('div');
-        optionsRow.style.display = 'flex';
-        optionsRow.style.flexWrap = 'wrap';
-        optionsRow.style.gap = '8px';
-
-        (control.options || []).forEach((opt) => {
-          const btn = document.createElement('button');
-          btn.className = 'btn btn-secondary btn-sm';
-          btn.textContent = opt.label;
-          btn.addEventListener('click', () => {
-            appendMessage(chatMessages, opt.label, 'user');
-            wrapper.remove();
-
-            if (opt.value === 'register_now') {
-              window.location.href = '/pages/auth/signup.html';
-              return;
-            }
-
-            if (opt.value === 'upload_form16_yes') {
-              const uploadZone = document.getElementById('form16-upload');
-              if (uploadZone) {
-                uploadZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            }
-
-            sendTaxMessage(opt.value);
-          });
-          optionsRow.appendChild(btn);
-        });
-        bubble.appendChild(optionsRow);
-      }
-
-      if (control.type === 'slider') {
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = String(control.min ?? 0);
-        slider.max = String(control.max ?? 100);
-        slider.step = String(control.step ?? 1);
-        slider.value = String(control.default ?? control.min ?? 0);
-
-        const valueLabel = document.createElement('div');
-        valueLabel.style.fontSize = '0.82rem';
-        valueLabel.style.color = 'var(--text-muted)';
-        valueLabel.textContent = `₹${Number(slider.value).toLocaleString('en-IN')}`;
-
-        slider.addEventListener('input', () => {
-          valueLabel.textContent = `₹${Number(slider.value).toLocaleString('en-IN')}`;
-        });
-
-        const submitBtn = document.createElement('button');
-        submitBtn.className = 'btn btn-primary btn-sm';
-        submitBtn.textContent = 'Use this amount';
-        submitBtn.addEventListener('click', () => {
-          const valueText = String(slider.value);
-          appendMessage(chatMessages, `₹${Number(valueText).toLocaleString('en-IN')}`, 'user');
-          wrapper.remove();
-          sendTaxMessage(valueText);
-        });
-
-        bubble.appendChild(slider);
-        bubble.appendChild(valueLabel);
-        bubble.appendChild(submitBtn);
-      }
-
-      if (control.type === 'select') {
-        const select = document.createElement('select');
-        select.className = 'chat-input';
-        (control.options || []).forEach((opt) => {
-          const option = document.createElement('option');
-          option.value = opt.value;
-          option.textContent = opt.label;
-          select.appendChild(option);
-        });
-
-        const submitBtn = document.createElement('button');
-        submitBtn.className = 'btn btn-primary btn-sm';
-        submitBtn.textContent = 'Submit';
-        submitBtn.addEventListener('click', () => {
-          const selectedText = select.options[select.selectedIndex]?.text || select.value;
-          appendMessage(chatMessages, selectedText, 'user');
-          wrapper.remove();
-          sendTaxMessage(select.value);
-        });
-
-        bubble.appendChild(select);
-        bubble.appendChild(submitBtn);
-      }
-
-      containerNode.appendChild(wrapper);
-      containerNode.scrollTop = containerNode.scrollHeight;
-    });
+        progress.remove();
+        appendMessage(chatMessages, err.message || 'Unable to process your request right now.', 'agent');
+      });
   };
 
   if (sendBtn) sendBtn.addEventListener('click', send);
