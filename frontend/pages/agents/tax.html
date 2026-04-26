@@ -36,85 +36,290 @@
     }
     #tax-result { display: none; }
 
-    /* Horizontal progress steps */
-    .progress-steps-horizontal {
+    /* ChatGPT-style layout */
+    .tax-agent-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      height: 100vh;
+      margin-top: var(--nav-height);
+    }
+
+    @media (max-width: 900px) {
+      .tax-agent-layout { grid-template-columns: 1fr; }
+      .chat-history-sidebar { display: none; }
+    }
+
+    /* Chat History Sidebar */
+    .chat-history-sidebar {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      position: relative;
-      padding: var(--space-4) var(--space-6);
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      flex-direction: column;
+      padding: var(--space-4) 0;
+      overflow-y: auto;
     }
 
-    /* Connecting line between steps */
-    .progress-steps-horizontal::before {
-      content: '';
-      position: absolute;
-      top: calc(var(--space-4) + 16px);
-      left: calc(var(--space-6) + 16px);
-      right: calc(var(--space-6) + 16px);
-      height: 2px;
-      background: var(--border-subtle);
-      z-index: 0;
+    .sidebar-header {
+      padding: var(--space-4) var(--space-4) var(--space-3);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: var(--space-3);
     }
 
-    .progress-step-h {
+    .new-chat-btn {
+      width: calc(100% - 2 * var(--space-4));
+      margin: 0 var(--space-4);
+      padding: 10px;
+      background: rgba(61, 220, 82, 0.1);
+      border: 1px solid rgba(61, 220, 82, 0.3);
+      border-radius: var(--radius-md);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-display);
+    }
+
+    .new-chat-btn:hover {
+      background: rgba(61, 220, 82, 0.18);
+      border-color: rgba(61, 220, 82, 0.5);
+    }
+
+    .chat-history-list {
+      padding: 0 var(--space-4);
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .chat-history-item {
+      padding: var(--space-2) var(--space-3);
+      margin-bottom: var(--space-2);
+      background: rgba(79, 195, 247, 0.08);
+      border: 1px solid rgba(79, 195, 247, 0.2);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .chat-history-item:hover {
+      background: rgba(79, 195, 247, 0.15);
+      border-color: rgba(79, 195, 247, 0.4);
+      color: var(--text-primary);
+    }
+
+    .chat-history-item.active {
+      background: rgba(79, 195, 247, 0.25);
+      border-color: var(--accent);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Main Chat Area */
+    .chat-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin-top: calc(-1 * var(--nav-height));
+      padding-top: var(--nav-height);
+      overflow: hidden;
+    }
+
+    .chat-welcome-section {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--space-2);
-      flex: 1;
-      position: relative;
-      z-index: 1;
+      justify-content: center;
+      padding: var(--space-8);
       text-align: center;
     }
 
-    .progress-step-h .step-circle-h {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid var(--border-subtle);
-      background: var(--bg-surface);
+    .chat-welcome-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--tax-color-muted);
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 2rem;
+      margin-bottom: var(--space-6);
+    }
+
+    .chat-welcome-title {
+      font-size: 1.8rem;
       font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+      font-family: var(--font-display);
+    }
+
+    .chat-welcome-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-6);
+      max-width: 480px;
+    }
+
+    .sample-queries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-3);
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .sample-query-btn {
+      padding: var(--space-4);
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+
+    .sample-query-btn:hover {
+      border-color: var(--tax-color);
+      background: rgba(245, 184, 76, 0.08);
+      color: var(--text-primary);
+    }
+
+    /* Chat Messages Area */
+    .chat-messages-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-messages-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .chat-message-wrapper {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .chat-message-wrapper.user {
+      justify-content: flex-end;
+    }
+
+    .chat-message-wrapper.user .chat-bubble {
+      background: var(--tax-color);
+      color: #2a1a00;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 var(--radius-lg);
+    }
+
+    .chat-message-wrapper.agent .chat-bubble {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0;
+    }
+
+    .chat-bubble {
+      max-width: 65%;
+      padding: var(--space-3) var(--space-4);
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Input Area */
+    .chat-input-section {
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-base);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: var(--space-3);
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 8px 12px;
+      align-items: flex-end;
+    }
+
+    .chat-input-wrapper:focus-within {
+      border-color: var(--tax-color);
+      box-shadow: 0 0 0 3px rgba(245, 184, 76, 0.1);
+    }
+
+    .chat-input-wrapper input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: var(--font-body);
+    }
+
+    .chat-input-wrapper input::placeholder {
       color: var(--text-muted);
-      transition: all var(--transition-normal);
+    }
+
+    .chat-send-btn {
+      background: var(--tax-color);
+      color: #2a1a00;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+      font-size: 0.85rem;
+      font-family: var(--font-display);
       flex-shrink: 0;
     }
 
-    .progress-step-h.active .step-circle-h {
-      border-color: var(--tax-color);
-      background: var(--tax-color-muted);
-      color: var(--tax-color);
+    .chat-send-btn:hover {
+      background: #f5b84c;
+      box-shadow: 0 4px 12px rgba(245, 184, 76, 0.3);
     }
 
-    .progress-step-h .step-label-h {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      line-height: 1.3;
-      max-width: 90px;
+    .chat-send-btn:active {
+      transform: scale(0.95);
     }
 
-    .progress-step-h.active .step-label-h {
-      color: var(--tax-color);
+    /* Scrollbar styling */
+    .chat-history-list::-webkit-scrollbar,
+    .chat-messages-section::-webkit-scrollbar {
+      width: 6px;
     }
 
-    .progress-step-h .step-sub-h {
-      font-size: 0.68rem;
-      color: var(--text-disabled);
-      line-height: 1.3;
-      max-width: 90px;
-      display: none;
+    .chat-history-list::-webkit-scrollbar-track,
+    .chat-messages-section::-webkit-scrollbar-track {
+      background: transparent;
     }
 
-    @media (min-width: 640px) {
-      .progress-step-h .step-sub-h { display: block; }
+    .chat-history-list::-webkit-scrollbar-thumb,
+    .chat-messages-section::-webkit-scrollbar-thumb {
+      background: rgba(79, 195, 247, 0.3);
+      border-radius: 3px;
+    }
+
+    .chat-history-list::-webkit-scrollbar-thumb:hover,
+    .chat-messages-section::-webkit-scrollbar-thumb:hover {
+      background: rgba(79, 195, 247, 0.5);
     }
   </style>
 </head>
@@ -124,7 +329,7 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="../../index.html" class="nav-logo">
-        <div class="nav-logo-icon">Ru</div>
+        <div class="nav-logo-icon">₹</div>
         <span class="nav-logo-text">RuPi</span>
         <span class="nav-logo-version">Your Every Rupee Counts</span>
       </a>
@@ -149,7 +354,7 @@
     <a href="security.html" class="nav-link">Security Agent</a>
   </div>
 
-  <!-- HERO -->
+  <!-- HERO — Simplified -->
   <section class="agent-hero tax">
     <div class="agent-hero-bg">
       <div class="agent-hero-glow"></div>
@@ -164,10 +369,9 @@
           <span style="color:var(--tax-color);">Tax Agent</span>
         </div>
         <div class="agent-tag tax" style="margin-bottom:var(--space-3);">Tax Agent</div>
-        <h1 class="agent-hero-title" style="font-size:clamp(2rem,4vw,3rem);">Automated Tax<br>Analysis & Filing</h1>
+        <h1 class="agent-hero-title" style="font-size:clamp(2rem,4vw,3rem);">Smart Tax<br>Analysis & Filing</h1>
         <p class="agent-hero-subtitle">
-          Upload your Form 16, input your income details, and let the Tax Agent compute 
-          your liability, identify deductions, and pre-fill your ITR — automatically.
+          Get instant answers about your taxes, deductions, ITR filing, and find the best tax regime for your income.
         </p>
         <div class="agent-hero-meta">
           <span class="agent-status-pill active">
@@ -184,161 +388,325 @@
     </div>
   </section>
 
-  <!-- STATS BAR -->
-  <div style="background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);">
-    <div class="container">
-      <div class="agent-stats-bar" style="margin:0;padding:var(--space-4) 0;">
-        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
-          <div class="agent-stat-num" style="color:var(--tax-color);" data-target="30" data-suffix="%" data-duration="1500">30%</div>
-          <div class="agent-stat-label">Max Tax Slab</div>
+  <!-- ChatGPT-STYLE MAIN INTERFACE -->
+  <div class="tax-agent-layout">
+    <!-- Chat History Sidebar -->
+    <aside class="chat-history-sidebar">
+      <div class="sidebar-header">
+        <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
+      </div>
+      <div class="chat-history-list" id="chatHistoryList">
+        <!-- Chat 1 -->
+        <div class="chat-history-item active" data-chat-id="chat1" onclick="loadChat(this, 'chat1')" data-date="Today">
+          <strong>80C Deduction Savings</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Today</div>
         </div>
-        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
-          <div class="agent-stat-num" data-target="150000" data-prefix="&#8377;" data-duration="1800">&#8377;1,50,000</div>
-          <div class="agent-stat-label">Max 80C Deduction</div>
+
+        <!-- Chat 2 -->
+        <div class="chat-history-item" data-chat-id="chat2" onclick="loadChat(this, 'chat2')" data-date="Yesterday">
+          <strong>Tax Regime Comparison</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Yesterday</div>
         </div>
-        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
-          <div class="agent-stat-num" style="color:var(--accent);" data-target="50000" data-prefix="&#8377;" data-duration="1600">&#8377;50,000</div>
-          <div class="agent-stat-label">Standard Deduction</div>
+
+        <!-- Chat 3 -->
+        <div class="chat-history-item" data-chat-id="chat3" onclick="loadChat(this, 'chat3')" data-date="2 days ago">
+          <strong>ITR Filing Guide</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">2 days ago</div>
         </div>
-        <div class="agent-stat-item" style="background:transparent;border:none;padding:var(--space-3) 0;">
-          <div class="agent-stat-num" data-target="4" data-suffix="%" data-duration="1000">4%</div>
-          <div class="agent-stat-label">Health & Education Cess</div>
+
+        <!-- Chat 4 -->
+        <div class="chat-history-item" data-chat-id="chat4" onclick="loadChat(this, 'chat4')" data-date="1 week ago">
+          <strong>HRA & Standard Deduction</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">1 week ago</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main-area">
+      <!-- Welcome Section (shown initially) -->
+      <div class="chat-welcome-section" id="welcomeSection">
+        <div class="chat-welcome-icon">💰</div>
+        <h2 class="chat-welcome-title">Ask Your Tax Agent</h2>
+        <p class="chat-welcome-desc">Get instant answers about deductions, tax regimes, ITR filing, and optimize your tax strategy</p>
+        
+        <div class="sample-queries">
+          <button class="sample-query-btn" onclick="sendSampleQuery('How much can I save with 80C deduction?')">
+            How much can I save with 80C deduction?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('Which tax regime suits my income better?')">
+            Which tax regime suits my income?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What is the standard deduction for salaried employees?')">
+            What is the standard deduction?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('How do I file my ITR online?')">
+            How do I file my ITR online?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What deductions can a self-employed professional claim?')">
+            Deductions for self-employed?
+          </button>
+          <button class="sample-query-btn" onclick="sendSampleQuery('What is HRA exemption and how is it calculated?')">
+            HRA exemption calculation
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Section (shown after first message) -->
+      <div class="chat-messages-section" id="messagesSection" style="display:none;">
+        <div class="chat-messages-container" id="chatMessages"></div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="chat-input-section">
+        <div class="chat-input-wrapper">
+          <input type="text" id="taxInput" placeholder="Ask me anything about taxes, deductions, or ITR filing..." />
+          <button class="chat-send-btn" onclick="sendTaxQuery()">Send</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <div style="padding:var(--space-8) 0 var(--space-16);">
-    <div class="container">
+  <script>
+    let chatHistory = [];
+    const taxInput = document.getElementById('taxInput');
 
-      <!-- ASK TAX AGENT — Centered, single instance -->
-      <div style="max-width:680px;margin:0 auto var(--space-8);text-align:center;">
-        <h2 style="font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:var(--space-2);">Ask Tax Agent</h2>
-        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:var(--space-5);">Your AI-powered tax advisor. Ask anything about deductions, ITR filing, or regime selection.</p>
-        <div style="background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card);">
-          <div id="tax-chat">
-            <div class="chat-container" style="max-height:260px;">
-              <div class="chat-message agent">
-                <div class="chat-avatar" style="font-size:0.7rem;background:var(--tax-color-muted);color:var(--tax-color);">AI</div>
-                <div class="chat-bubble">Hello! I am your Tax Agent. Ask me anything about deductions, regime selection, or your ITR filing.</div>
-              </div>
-            </div>
-            <div class="chat-input-row" style="border-top:1px solid var(--border-subtle);">
-              <input type="text" class="chat-input" placeholder="e.g. What is 80C limit? Which regime suits me?" />
-              <button class="btn btn-primary btn-sm chat-send-btn" style="background:var(--tax-color);color:#2a1a00;border-radius:var(--radius-full);padding:8px 14px;">&#8594;</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    // Pre-loaded chat history data
+    const chatHistories = {
+      chat1: [
+        { role: 'user', content: 'How much can I save with 80C deduction?' },
+        { role: 'agent', content: 'Under Section 80C, you can claim deductions up to ₹1,50,000 per financial year. This includes investments in:\n• Life Insurance Premiums\n• PPF (Public Provident Fund)\n• ELSS Mutual Funds\n• Fixed Deposits\n• Children\'s tuition fees\n• Home Loan Principal' },
+        { role: 'user', content: 'If my income is 8 lakhs, what\'s the tax saving?' },
+        { role: 'agent', content: 'Great question! If your income is ₹8 lakhs and you use the full ₹1,50,000 deduction under 80C:\n\nUnder New Regime: ~₹17,500 tax savings\nUnder Old Regime: ~₹45,000 tax savings (30% tax slab)\n\nOld regime is more beneficial if you have deductions. Let me know if you\'d like a detailed comparison!' }
+      ],
+      chat2: [
+        { role: 'user', content: 'Which tax regime suits my income better?' },
+        { role: 'agent', content: 'To recommend the best regime, I need some information:\n1. Your annual income\n2. Home Loan (yes/no)\n3. Investment amount in 80C\n4. HRA receipt amount\n5. Medical insurance premium\n\nGenerally: Old Regime is better if you have high deductions. New Regime is better if deductions are low.' },
+        { role: 'user', content: 'My income is ₹6L, no home loan, 50k in PPF, 20k HRA, 5k medical' },
+        { role: 'agent', content: 'Based on your profile:\n\nOld Regime Tax: ~₹48,100 (with 50C + HRA + medical deductions)\nNew Regime Tax: ~₹52,500\n\n✓ Old Regime Saves: ₹4,400 annually\n\nRecommendation: Choose Old Regime for better tax efficiency!' }
+      ],
+      chat3: [
+        { role: 'user', content: 'How do I file my ITR online?' },
+        { role: 'agent', content: 'ITR filing process on Income Tax portal:\n\n1. Visit www.incometaxindiaefiling.gov.in\n2. Register/Login with PAN\n3. Select appropriate ITR form (ITR-1 for salaried)\n4. Enter income details\n5. Claim deductions (80C, HRA, etc.)\n6. Submit & Generate XML\n7. E-verify within 30 days\n\nDeadline: July 31, 2024 (AY 2024-25)' },
+        { role: 'user', content: 'What if my employer already filed Form 24Q?' },
+        { role: 'agent', content: 'Form 24Q contains your employer\'s TDS details. The portal will auto-fetch this data when you login.\n\nKey point: Your ITR must match the 24Q amount. If there\'s a mismatch:\n✓ Re-verify computation\n✓ Check additional income sources\n✓ Ensure all deductions are claimed\n\nThe system will alert you of discrepancies.' }
+      ],
+      chat4: [
+        { role: 'user', content: 'What\'s the difference between HRA and Standard Deduction?' },
+        { role: 'agent', content: 'Great question! Key differences:\n\n🏠 HRA Exemption:\n• Only available under Old Regime\n• For salaried employees who pay rent\n• Minimum of: Salary/10, Rent-10%, or ₹0\n• Requires rent agreement & proof\n• Max ₹5L+ depending on city\n\n📋 Standard Deduction:\n• Available to ALL salaried employees\n• ₹50,000 (flat deduction)\n• No proof required\n• Available in both regimes' },
+        { role: 'user', content: 'I pay 15k rent, should I claim HRA or Standard?' },
+        { role: 'agent', content: 'Your HRA exemption calculation:\nMin(Salary/10, Rent-10%, Actual Rent)\n\nIf salary is ₹6L: Min(₹60k, ₹1.35L, ₹1.8L) = ₹60k\n\n💡 Recommendation:\nOld Regime: Claim ₹60k HRA + other deductions\nNew Regime: Standard ₹50k deduction\n\nOld regime gives you ₹10k more benefit. Choose Old Regime!' }
+      ]
+    };
 
-      <!-- UPLOAD DOCUMENTS — Below Ask Tax Agent -->
-      <div style="max-width:680px;margin:0 auto var(--space-6);">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <span class="icon-wrap" style="width:32px;height:32px;font-size:1rem;background:var(--accent-muted);color:var(--accent);">&#128279;</span>
-              Upload Documents
-            </div>
-            <span class="badge badge-green">Blockchain Secured</span>
-          </div>
-          <div class="panel-body">
-            <div class="file-upload-wrapper">
-              <div class="file-drop-zone" id="form16-upload" data-api-upload="true">
-                <input type="file" accept=".pdf,.jpg,.png" multiple style="display:none;" />
-                <span class="file-drop-icon">&#128196;</span>
-                <div class="file-drop-title">Upload Form 16 / Investment Proofs</div>
-                <div class="file-drop-sub">Drag &amp; drop or click to browse &mdash; PDF, JPG, PNG supported</div>
-                <div style="margin-top:var(--space-3);">
-                  <span class="badge badge-green" style="font-size:0.72rem;">
-                    <span class="icon-wrap-green" style="width:14px;height:14px;font-size:0.6rem;display:inline-flex;">&#128279;</span>
-                    All uploads are blockchain-notarized
-                  </span>
-                </div>
-              </div>
-              <div class="file-list" id="form16-file-list"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+    // Chat metadata for localStorage
+    const chatMetadata = {
+      chat1: { title: '80C Deduction Savings' },
+      chat2: { title: 'Tax Regime Comparison' },
+      chat3: { title: 'ITR Filing Guide' },
+      chat4: { title: 'HRA & Standard Deduction' }
+    };
 
-      <!-- YOUR PROGRESS — Horizontal, below Upload Documents -->
-      <div style="max-width:680px;margin:0 auto var(--space-10);">
-        <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:var(--space-3);">Your Progress</div>
-        <div class="progress-steps-horizontal">
-          <div class="progress-step-h active">
-            <div class="step-circle-h">1</div>
-            <div class="step-label-h">Enter Income Details</div>
-            <div class="step-sub-h">Fill income &amp; regime</div>
-          </div>
-          <div class="progress-step-h">
-            <div class="step-circle-h">2</div>
-            <div class="step-label-h">Upload Form 16</div>
-            <div class="step-sub-h">Secure your document</div>
-          </div>
-          <div class="progress-step-h">
-            <div class="step-circle-h">3</div>
-            <div class="step-label-h">Select Deductions</div>
-            <div class="step-sub-h">AI suggests applicable ones</div>
-          </div>
-          <div class="progress-step-h">
-            <div class="step-circle-h">4</div>
-            <div class="step-label-h">View Tax Report</div>
-            <div class="step-sub-h">Get ITR-ready breakdown</div>
-          </div>
-        </div>
-      </div>
+    // Initialize chat history in localStorage on page load
+    function initializeChatHistory() {
+      let chatHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      
+      // Add or update Tax Agent chats from hardcoded data
+      Object.entries(chatHistories).forEach(([chatId, messages]) => {
+        const metadata = chatMetadata[chatId];
+        const existingIndex = chatHistory.findIndex(c => c.id === chatId);
+        const preview = messages[0]?.content?.substring(0, 60) + '...' || 'Tax consultation';
+        
+        const chatItem = {
+          id: chatId,
+          agent: 'tax',
+          title: metadata.title,
+          preview: preview,
+          time: getRelativeTime(chatId),
+          messages: messages
+        };
+        
+        if (existingIndex >= 0) {
+          chatHistory[existingIndex] = chatItem;
+        } else {
+          chatHistory.push(chatItem);
+        }
+      });
+      
+      localStorage.setItem('rupi_chat_history', JSON.stringify(chatHistory));
+    }
 
-      <!-- MAIN PANEL -->
-      <div style="max-width:680px;margin:0 auto;">
+    // Get relative time for chat (for demo purposes)
+    function getRelativeTime(chatId) {
+      const timeMap = {
+        chat1: 'Today',
+        chat2: 'Yesterday',
+        chat3: '2 days ago',
+        chat4: '1 week ago'
+      };
+      return timeMap[chatId] || 'Today';
+    }
 
-        <!-- Income & Tax Details — COMMENTED OUT
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <span class="icon-wrap icon-wrap-yellow" style="width:32px;height:32px;font-size:1rem;">&#9881;</span>
-              Income &amp; Tax Details
-            </div>
-            <span class="badge badge-yellow">FY 2024-25</span>
-          </div>
-        </div>
-        END COMMENT -->
+    function getConversation(chatId) {
+      const storedHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      const storedChat = storedHistory.find((item) => item.id === chatId);
+      if (storedChat && Array.isArray(storedChat.messages) && storedChat.messages.length) {
+        return storedChat.messages;
+      }
+      return chatHistories[chatId] || [];
+    }
 
-        <!-- Tax Regimes — COMMENTED OUT
-        <div class="sidebar-card">
-          <div class="sidebar-card-title">Tax Regimes</div>
-          <div style="display:flex;flex-direction:column;gap:var(--space-3);">
-            <div style="padding:var(--space-3);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);">
-              <div style="font-weight:600;font-size:0.85rem;color:var(--tax-color);margin-bottom:4px;">New Regime (Default)</div>
-              <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;">Lower rates, no exemptions.</div>
-            </div>
-            <div style="padding:var(--space-3);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);">
-              <div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:4px;">Old Regime</div>
-              <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;">Higher rates but allows 80C, HRA, NPS exemptions.</div>
-            </div>
-          </div>
-        </div>
-        END COMMENT -->
+    // Update chat history with new messages
+    function updateChatHistoryWithNewMessage(userMessage, agentResponse) {
+      let chatHistory = JSON.parse(localStorage.getItem('rupi_chat_history') || '[]');
+      
+      // Create or update live chat (for new messages)
+      const firstChat = chatHistory.find((c) => c.id === 'live-chat') || {
+        id: 'live-chat',
+        agent: 'tax',
+        title: 'Ongoing Conversation',
+        preview: userMessage.substring(0, 60) + '...',
+        time: 'Today',
+        messages: []
+      };
+      
+      firstChat.messages = firstChat.messages || [];
+      firstChat.messages.push({ role: 'user', content: userMessage });
+      firstChat.messages.push({ role: 'agent', content: agentResponse });
+      firstChat.preview = userMessage.substring(0, 60) + '...';
+      firstChat.time = 'Today';
+      
+      if (!chatHistory.some(c => c.id === 'live-chat')) {
+        chatHistory.unshift(firstChat);
+      } else {
+        const idx = chatHistory.findIndex(c => c.id === 'live-chat');
+        chatHistory[idx] = firstChat;
+      }
+      
+      localStorage.setItem('rupi_chat_history', JSON.stringify(chatHistory));
+    }
 
-        <!-- Select Applicable Deductions — COMMENTED OUT
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <span class="icon-wrap icon-wrap-yellow" style="width:32px;height:32px;font-size:1rem;">&#10003;</span>
-              Select Applicable Deductions
-            </div>
-            <span class="badge badge-yellow">AI Suggested</span>
-          </div>
-        </div>
-        END COMMENT -->
+    // Initialize on page load
+    initializeChatHistory();
 
-        <!-- Result (hidden until computed) -->
-        <div id="tax-result"></div>
+    // Check if we need to load a specific chat from User Profile
+    function loadChatOnPageLoad() {
+      const chatIdToLoad = sessionStorage.getItem('rupi_load_chat_id');
+      if (chatIdToLoad) {
+        sessionStorage.removeItem('rupi_load_chat_id');
+        
+        setTimeout(() => {
+          // Find the chat element by data-chat-id attribute
+          const chatElement = document.querySelector(`[data-chat-id="${chatIdToLoad}"]`);
+          if (chatElement) {
+            loadChat(chatElement, chatIdToLoad);
+          } else {
+            // Fallback: load from storage or default data even if no sidebar entry exists
+            document.querySelectorAll('.chat-history-item').forEach(item => item.classList.remove('active'));
+            const targetElement = Array.from(document.querySelectorAll('.chat-history-item')).find(el => el.getAttribute('data-chat-id') === chatIdToLoad);
+            if (targetElement) {
+              loadChat(targetElement, chatIdToLoad);
+            } else {
+              const mockElement = { classList: { add: () => {}, remove: () => {} } };
+              loadChat(mockElement, chatIdToLoad);
+            }
+          }
+        }, 50);
+      }
+    }
 
-      </div>
+    // Load chat on page load if needed
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadChatOnPageLoad);
+    } else {
+      loadChatOnPageLoad();
+    }
 
-    </div>
-  </div>
+    // Allow Enter key to send
+    taxInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendTaxQuery();
+    });
+
+    function newChat() {
+      chatHistory = [];
+      document.getElementById('messagesSection').style.display = 'none';
+      document.getElementById('welcomeSection').style.display = 'flex';
+      document.getElementById('chatMessages').innerHTML = '';
+      document.querySelectorAll('.chat-history-item').forEach(item => item.classList.remove('active'));
+      taxInput.value = '';
+    }
+
+    function sendSampleQuery(query) {
+      taxInput.value = query;
+      sendTaxQuery();
+    }
+
+    function sendTaxQuery() {
+      const message = taxInput.value.trim();
+      if (!message) return;
+
+      // Hide welcome section and show messages
+      document.getElementById('welcomeSection').style.display = 'none';
+      document.getElementById('messagesSection').style.display = 'flex';
+
+      // Add user message
+      const chatMessages = document.getElementById('chatMessages');
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-message-wrapper user';
+      userMsg.innerHTML = `<div class="chat-bubble">${message}</div>`;
+      chatMessages.appendChild(userMsg);
+
+      // Scroll to bottom
+      document.querySelector('.chat-messages-section').scrollTop = document.querySelector('.chat-messages-section').scrollHeight;
+
+      // Simulate agent response
+      setTimeout(() => {
+        const agentResponse = `I'm analyzing your question about taxes. Based on your inquiry regarding "${message.substring(0, 30)}...", I recommend reviewing your income slab, applicable deductions (80C up to ₹1,50,000 for investments, HRA exemption, standard deduction of ₹50,000), and comparing old vs. new tax regimes for maximum savings. Would you like more specific guidance?`;
+        
+        const agentMsg = document.createElement('div');
+        agentMsg.className = 'chat-message-wrapper agent';
+        agentMsg.innerHTML = `<div class="chat-bubble">${agentResponse}</div>`;
+        chatMessages.appendChild(agentMsg);
+        document.querySelector('.chat-messages-section').scrollTop = document.querySelector('.chat-messages-section').scrollHeight;
+        
+        // Update localStorage with new message
+        updateChatHistoryWithNewMessage(message, agentResponse);
+      }, 600);
+
+      taxInput.value = '';
+      chatHistory.push({ role: 'user', content: message });
+    }
+
+    function loadChat(element, chatId) {
+      // Update active state
+      document.querySelectorAll('.chat-history-item').forEach(item => item.classList.remove('active'));
+      if (element && element.classList && element.classList.add) {
+        element.classList.add('active');
+      }
+
+      // Hide welcome section and show messages
+      document.getElementById('welcomeSection').style.display = 'none';
+      document.getElementById('messagesSection').style.display = 'flex';
+
+      // Clear and populate messages
+      const chatMessages = document.getElementById('chatMessages');
+      chatMessages.innerHTML = '';
+
+      // Load conversation from stored history first, then fallback to default content
+      const conversation = getConversation(chatId);
+      conversation.forEach((msg, index) => {
+        setTimeout(() => {
+          const msgDiv = document.createElement('div');
+          msgDiv.className = `chat-message-wrapper ${msg.role}`;
+          msgDiv.innerHTML = `<div class="chat-bubble">${msg.content}</div>`;
+          chatMessages.appendChild(msgDiv);
+          document.querySelector('.chat-messages-section').scrollTop = document.querySelector('.chat-messages-section').scrollHeight;
+        }, index * 300);
+      });
+
+      chatHistory = [...conversation];
+    }
+  </script>
 
   <script src="../../js/main.js"></script>
   <script src="../../js/agents.js"></script>
