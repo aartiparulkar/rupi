@@ -497,6 +497,14 @@
           return;
         }
         // Push to backend
+
+        const payload = {
+          ...updates,
+          firstName: updates.firstName || storedUser.firstName,
+          lastName: updates.lastName || storedUser.lastName,
+          profileComplete: true,
+        };
+
         fetch(apiUrl('/api/user/profile'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
